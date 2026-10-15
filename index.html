@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Salesforce Platform Administrator — Study Tracker</title>
+<style>
+  html{scroll-padding-top:env(safe-area-inset-top, 0px)}
+  html,body{margin:0;background:#f3f3f3}
+  :root{box-sizing:border-box;
+        padding-top:env(safe-area-inset-top, 0px);
+        padding-bottom:env(safe-area-inset-bottom, 0px)}
+  :root{
+    --bg:#f3f3f3;
+    --surface:#ffffff;
+    --ink:#181818;
+    --ink-soft:#5c5c5c;
+    --line:#e0e0e0;
+    --miss-ink:#ba0517;
+    --miss-bg:#feded8;
+    --ok-ink:#2e844a;
+    --ok-bg:#ebf7e6;
+    --mark:#0176d3;
+    --mark-soft:#eaf4fe;
+    --dim:#c9c9c9;
+    --brand-dark:#032d60;
+    --brand-mid:#0b5cab;
+  }
+  *{box-sizing:border-box}
+  #root{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Salesforce Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    padding:20px 16px 56px;
+  }
+  .wrap{max-width:760px;margin:0 auto}
+
+  /* ---- readiness header ---- */
+  .head{margin-bottom:22px;background:linear-gradient(135deg,var(--brand-dark),var(--brand-mid));
+        color:#fff;border-radius:12px;padding:20px 22px}
+  .head .att b{color:#fff}
+  .head .att.two b{color:#9ad6ff}
+  .head .att span{color:rgba(255,255,255,.72)}
+  .head .att em{color:#7ee3a8}
+  .head .bars{border-top:1px solid rgba(255,255,255,.22)}
+  .head .bar{border-bottom:1px solid rgba(255,255,255,.14)}
+  .head .bar .name{color:#fff}
+  .head .bar .name em{color:rgba(255,255,255,.6)}
+  .head .track{background:rgba(255,255,255,.18)}
+  .head .fill{background:rgba(255,255,255,.45)}
+  .head .track.t2 .fill{background:#57b9ff}
+  .head .track.t2 .fill.low{background:#ff8a7a}
+  .head .pass{background:rgba(255,255,255,.85)}
+  .head .pct{color:rgba(255,255,255,.55)}
+  .head .pct b{color:#fff}
+  .head .legend{color:rgba(255,255,255,.7)}
+  .head .collapse{border-color:rgba(255,255,255,.35);color:rgba(255,255,255,.85);background:rgba(255,255,255,.08)}
+  .head .collapse:hover{border-color:#fff;color:#fff}
+  .head .minisum{border-top:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.75)}
+  .head .minisum b{color:#fff}
+  .attempts{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-end}
+  .att b{font-size:40px;line-height:1;font-weight:650;letter-spacing:-.02em;display:block}
+  .att.two b{color:var(--mark)}
+  .att span{font-size:12.5px;color:var(--ink-soft);display:block;margin-top:5px}
+  .att em{font-style:normal;color:var(--ok-ink);font-weight:650}
+  .headtop{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+  .collapse{font:inherit;font-size:12.5px;cursor:pointer;background:none;border:1px solid var(--line);
+    border-radius:6px;padding:4px 10px;color:var(--ink-soft);white-space:nowrap;flex:0 0 auto;
+    display:inline-flex;align-items:center;gap:6px}
+  .collapse:hover{border-color:#aab6c5;color:var(--ink)}
+  .collapse:focus-visible{outline:2px solid var(--mark);outline-offset:2px}
+  .collapse .chev{display:inline-block;transition:transform .15s ease;font-size:10px}
+  .collapse[aria-expanded="false"] .chev{transform:rotate(-90deg)}
+  .minisum{font-size:12.5px;color:var(--ink-soft);margin:12px 0 0;padding-top:11px;border-top:1px solid var(--line)}
+  .minisum b{color:var(--ink);font-weight:600}
+  .bars{margin-top:18px;border-top:1px solid var(--line)}
+  .bar{display:grid;grid-template-columns:1fr 92px;gap:14px;align-items:center;
+       padding:8px 0;border-bottom:1px solid var(--line)}
+  .bar .name{font-size:13.5px}
+  .bar .name em{font-style:normal;color:var(--ink-soft);font-size:12.5px}
+  .track{position:relative;height:6px;background:#dde3ea;border-radius:2px;margin-top:4px}
+  .fill{position:absolute;inset:0 auto 0 0;border-radius:2px;background:var(--dim)}
+  .track.t2 .fill{background:var(--mark)}
+  .track.t2 .fill.low{background:var(--miss-ink)}
+  .pass{position:absolute;top:-2px;bottom:-2px;left:65%;width:2px;background:var(--ink)}
+  .pct{text-align:right;font-variant-numeric:tabular-nums;font-size:13px;color:var(--dim)}
+  .pct b{color:var(--ink);font-weight:600}
+  .legend{font-size:12.5px;color:var(--ink-soft);margin-top:9px}
+
+  /* ---- controls ---- */
+  .controls{position:sticky;top:0;z-index:5;background:var(--bg);
+            padding:12px 0 10px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow-x:auto;
+       background:var(--surface);max-width:100%}
+  .seg button{white-space:nowrap}
+  .seg button{font:inherit;font-size:13px;cursor:pointer;border:none;background:none;
+    padding:6px 14px;color:var(--ink-soft)}
+  .seg button[aria-pressed="true"]{background:var(--mark);color:#fff;font-weight:600}
+  .crow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  select.filter{font:inherit;font-size:13px;padding:6px 30px 6px 11px;border:1px solid var(--line);
+    border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer;max-width:100%;
+    -webkit-appearance:none;appearance:none;
+    background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23546376' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 11px center;background-size:10px}
+  .tool{font:inherit;font-size:13px;cursor:pointer;border-radius:8px;padding:6px 12px;
+    border:1px solid var(--line);background:var(--surface);color:var(--ink-soft)}
+  .tool:hover{border-color:#aab6c5;color:var(--ink)}
+  .tool[aria-pressed="true"]{background:var(--mark);border-color:var(--mark);color:#fff;font-weight:600}
+  .count{font-size:12.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums;margin-top:9px}
+  select:focus-visible,.tool:focus-visible,.seg button:focus-visible{outline:2px solid var(--mark);outline-offset:2px}
+
+  /* ---- cards ---- */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;
+        padding:16px 18px;margin-top:12px;box-shadow:0 2px 2px rgba(0,0,0,.05)}
+  .card.done{opacity:.5}
+  .meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+        font-size:12.5px;color:var(--ink-soft);margin-bottom:8px}
+  .qn{font-weight:650;color:var(--ink)}
+  .tag{border:1px solid var(--line);border-radius:4px;padding:1px 7px}
+  .prompt{font-size:15.5px;margin:0 0 12px}
+  ul.opts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+  ul.opts li{font-size:14px;padding:6px 10px;border-radius:6px;border:1px solid transparent;display:flex;gap:9px}
+  .flag{flex:0 0 auto;font-size:11.5px;font-weight:700;line-height:1.55;letter-spacing:.01em}
+  li.miss{background:var(--miss-bg);border-color:#f0c9c4}
+  li.miss .flag{color:var(--miss-ink)}
+  li.ok{background:var(--ok-bg);border-color:#c2ded1}
+  li.ok .flag{color:var(--ok-ink)}
+  li.plain{color:var(--ink-soft)}
+  .why{margin:12px 0 0;padding-top:11px;border-top:1px solid var(--line);font-size:14px}
+  .back{margin:0;padding:12px 14px;border-radius:8px;background:var(--ok-bg);
+        border:1px solid #c2ded1;font-size:14.5px;color:#0f4f39}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+  .footL,.footR{display:flex;align-items:center;gap:8px}
+  label.mark{display:inline-flex;align-items:center;gap:7px;font-size:13px;
+             color:var(--ink-soft);cursor:pointer;user-select:none}
+  .star{font:inherit;font-size:13px;cursor:pointer;background:none;border:1px solid var(--line);
+        border-radius:6px;padding:4px 10px;color:var(--ink-soft)}
+  .star:hover{border-color:#aab6c5;color:var(--ink)}
+  .star[aria-pressed="true"]{background:var(--mark-soft);border-color:var(--mark);color:var(--mark);font-weight:600}
+  .star:focus-visible{outline:2px solid var(--mark);outline-offset:2px}
+  .card.starred{border-left:3px solid var(--mark);padding-left:15px}
+  .tag.starred{border-color:var(--mark);color:var(--mark)}
+  .tag.hasnote{border-color:#b08428;color:#8a6516}
+  .flagbtn{font:inherit;font-size:13px;cursor:pointer;background:none;border:1px solid var(--line);
+    border-radius:6px;padding:4px 10px;color:var(--ink-soft)}
+  .flagbtn:hover{border-color:#e0a9a2;color:var(--miss-ink)}
+  .reasonbox{margin-top:12px;padding:12px 14px;border:1px solid #f0c9c4;background:var(--miss-bg);border-radius:8px}
+  .reasonbox p{margin:0 0 9px;font-size:13.5px;font-weight:600;color:var(--miss-ink)}
+  .reasons{display:flex;flex-wrap:wrap;gap:6px}
+  .reasons button{font:inherit;font-size:12.5px;cursor:pointer;border:1px solid #e0b4ad;background:#fff;
+    color:var(--miss-ink);border-radius:20px;padding:4px 11px}
+  .reasons button:hover{background:var(--miss-ink);border-color:var(--miss-ink);color:#fff}
+  .reasonrow{display:flex;gap:7px;margin-top:9px}
+  .reasonrow input{font:inherit;font-size:13px;flex:1;min-width:0;border:1px solid #e0b4ad;
+    border-radius:6px;padding:5px 9px;background:#fff;color:var(--ink)}
+  .reasonrow button{font:inherit;font-size:12.5px;cursor:pointer;border-radius:6px;padding:5px 11px;
+    border:1px solid var(--line);background:#fff;color:var(--ink-soft)}
+  .archived{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:14px 16px;margin-top:12px}
+  .archived .reasonwhy{font-size:13px;color:var(--miss-ink);background:var(--miss-bg);
+    border:1px solid #f0c9c4;border-radius:6px;padding:4px 9px;display:inline-block;margin-top:9px}
+  .archived .detail{font-size:13.5px;color:var(--ink-soft);margin:8px 0 0}
+  .tag.gotok{border-color:#c2ded1;background:var(--ok-bg);color:var(--ok-ink)}
+  .tag.gotmiss{border-color:#f0c9c4;background:var(--miss-bg);color:var(--miss-ink)}
+
+  /* ---- highlights ---- */
+  .notes{margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
+  ul.notelist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+  ul.notelist li{display:flex;gap:8px;align-items:flex-start;font-size:13.5px}
+  ul.notelist li::before{content:"•";color:var(--mark);line-height:1.5;flex:0 0 auto}
+  ul.notelist .body{flex:1;white-space:pre-wrap}
+  ul.notelist .del{font:inherit;font-size:15px;line-height:1.4;cursor:pointer;background:none;border:none;
+             color:#c3ccd7;padding:0 2px;flex:0 0 auto}
+  ul.notelist .del:hover{color:var(--miss-ink)}
+  .qref{font:inherit;font-size:12.5px;font-weight:650;color:var(--mark);background:var(--mark-soft);
+        border:none;border-radius:4px;padding:1px 7px;cursor:pointer;flex:0 0 auto;line-height:1.6}
+  .qref:hover{background:var(--mark);color:#fff}
+
+  #selpop{position:fixed;z-index:50;transform:translate(-50%,-100%);
+    background:var(--ink);color:#fff;border-radius:8px;padding:8px 10px;
+    box-shadow:0 6px 20px rgba(20,32,46,.28);font-size:13px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    display:none;align-items:center;gap:10px;white-space:nowrap;max-width:92vw}
+  #selpop.on{display:flex}
+  #selpop button{font:inherit;font-size:13px;cursor:pointer;border-radius:5px;padding:4px 9px;
+    border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff}
+  #selpop button.primary{background:#fff;color:var(--ink);border-color:#fff;font-weight:600}
+
+  /* ---- cheat sheet ---- */
+  .sheet{margin-top:30px;background:var(--surface);border:1px solid var(--line);border-radius:8px;
+         padding:18px;box-shadow:0 2px 2px rgba(0,0,0,.05)}
+  .sheet h2{border-bottom:3px solid var(--mark);display:inline-block;padding-bottom:4px}
+  .sheet h2{font-size:17px;margin:0 0 4px;font-weight:650}
+  .sheet p.sub{margin:0 0 14px;color:var(--ink-soft);font-size:13.5px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{text-align:left;font-weight:650;padding:7px 10px 7px 0;border-bottom:1px solid var(--line);vertical-align:top}
+  td{padding:8px 10px 8px 0;border-bottom:1px solid var(--line);vertical-align:top}
+  td:first-child{width:34%;color:var(--miss-ink)}
+  td:nth-child(2){width:34%;color:var(--ok-ink)}
+  td:last-child{color:var(--ink-soft)}
+  .gap{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+  .gap:first-of-type{border-top:none;padding-top:0;margin-top:0}
+  .gap h3{font-size:14.5px;margin:0 0 8px;font-weight:650;display:flex;align-items:baseline;gap:8px}
+  .gap h3 em{font-style:normal;font-size:12px;font-weight:600;color:var(--mark);
+             background:var(--mark-soft);border-radius:4px;padding:1px 7px}
+  .sheet a{color:var(--mark)}
+  .sheet ul.notelist li{align-items:flex-start}
+  .pairs td:first-child,.pairs td:nth-child(2){width:30%}
+  .pill{display:inline-block;border-radius:14px;padding:2px 10px;font-size:12.5px;font-weight:600;line-height:1.5}
+  .pill.bad{background:var(--miss-bg);color:var(--miss-ink);border:1px solid #f5b8ae}
+  .pill.good{background:var(--ok-bg);color:var(--ok-ink);border:1px solid #b6e0b6}
+  .defsearch{position:relative;margin-top:4px;display:flex;align-items:center;gap:10px}
+  .defsearch input{font:inherit;font-size:14px;flex:1;min-width:0;border:1px solid var(--line);
+    border-radius:8px;padding:9px 13px;background:var(--surface);color:var(--ink);
+    box-shadow:0 2px 2px rgba(0,0,0,.05)}
+  .defsearch input:focus{outline:2px solid var(--mark);outline-offset:0;border-color:var(--mark)}
+  .defcount{font-size:12.5px;color:var(--ink-soft);white-space:nowrap}
+  .defsec{margin-top:20px}
+  dl.deflist{margin:0}
+  .defrow{padding:10px 0;border-bottom:1px solid var(--line);display:grid;
+          grid-template-columns:230px 1fr;gap:18px;align-items:baseline}
+  .defrow:last-child{border-bottom:none;padding-bottom:0}
+  .defrow dt{font-weight:650;font-size:14px;color:var(--brand-dark)}
+  .defrow dd{margin:0;font-size:13.5px;color:var(--ink-soft)}
+  @media (max-width:560px){
+    .defrow{grid-template-columns:1fr;gap:3px}
+  }
+  .empty{text-align:center;color:var(--ink-soft);padding:34px 0;font-size:14px}
+  @media (max-width:520px){
+    .bar{grid-template-columns:1fr 74px}
+    .attempts{gap:18px}
+    table,tbody,tr,td,th{display:block}
+    thead{display:none}
+    tr{border-bottom:1px solid var(--line);padding:10px 0}
+    td{border:none;padding:2px 0;width:auto!important}
+    td:first-child::before{content:"You picked: "}
+    td:nth-child(2)::before{content:"Actual: "}
+  }
+
+  /* ---- dark mode ---- */
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1b1b1b; --surface:#252525; --ink:#f0f0f0; --ink-soft:#a8a8a8;
+      --line:#3a3a3a; --miss-ink:#ff8a7a; --miss-bg:#3a1a17;
+      --ok-ink:#7ee3a8; --ok-bg:#15301f; --mark:#57b9ff; --mark-soft:#12314a;
+      --dim:#4a4a4a; --brand-dark:#57b9ff; --brand-mid:#0b5cab;
+    }
+    :root:not([data-theme="light"]) html,
+    :root:not([data-theme="light"]) body{background:#1b1b1b}
+    :root:not([data-theme="light"]) .head{background:linear-gradient(135deg,#04213f,#0a4680)}
+    :root:not([data-theme="light"]) .pill.bad{border-color:#6b2b24}
+    :root:not([data-theme="light"]) .pill.good{border-color:#2c5c3c}
+    :root:not([data-theme="light"]) .reasons button,
+    :root:not([data-theme="light"]) .reasonrow input,
+    :root:not([data-theme="light"]) .reasonrow button{background:var(--surface);border-color:#6b2b24}
+    :root:not([data-theme="light"]) .card,
+    :root:not([data-theme="light"]) .sheet{box-shadow:none}
+    :root:not([data-theme="light"]) .track{background:#3a3a3a}
+  }
+  :root[data-theme="dark"]{
+    --bg:#1b1b1b; --surface:#252525; --ink:#f0f0f0; --ink-soft:#a8a8a8;
+    --line:#3a3a3a; --miss-ink:#ff8a7a; --miss-bg:#3a1a17;
+    --ok-ink:#7ee3a8; --ok-bg:#15301f; --mark:#57b9ff; --mark-soft:#12314a;
+    --dim:#4a4a4a; --brand-dark:#57b9ff; --brand-mid:#0b5cab;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+(function(){
+  // id, label, attempt 1 %, attempt 2 %, weight on the real exam
+  const DOMAINS = [
+    ["da","Data & Analytics Management",75,75,80,17],
+    ["cs","Configuration & Setup",33,70,67,15],
+    ["om","Object Manager & Lightning App Builder",75,60,78,15],
+    ["wa","Automation",70,60,56,15],
+    ["sm","Sales & Marketing Applications",28,100,83,10],
+    ["ss","Service & Support Applications",42,83,83,10],
+    ["pc","Productivity & Collaboration",50,100,100,10],
+    ["ai","Agentforce",null,80,80,8]
+  ];
+
+  // Outline topics neither practice test touched
+  const GAPS = [
+    ["da",["Duplicate rules and matching rules",
+      "Validation rules",
+      "Custom report types — joining objects, with/without records",
+      "Joined reports, bucket columns, summary formulas",
+      "How the sharing model and folder structure affect who sees a report",
+      "Mass delete, mass transfer, and archival",
+      "Dashboard filters, View Dashboard As, dashboard licensing limits"]],
+    ["cs",["Company settings — business hours, currency management, defaults",
+      "Deactivating vs deleting a user, and the implications of making one inactive",
+      "Distributing licenses and assigning feature licenses",
+      "Identity verification and Session Settings",
+      "App menu, global actions, list view administration",
+      "Agent access"]],
+    ["om",["Junction objects and many-to-many relationships",
+      "Schema Builder",
+      "Implications of deleting a field — roll-ups, cross-object formulas, dependent picklists",
+      "Quick actions vs global actions",
+      "Business processes",
+      "Assigning page layouts by profile and record type"]],
+    ["wa",["Order of execution",
+      "Lead assignment rules and case assignment rules",
+      "Case auto-response rules",
+      "Default automation user",
+      "Record-triggered flows: before save vs after save",
+      "Approver criteria, delegated approvers, and recall"]],
+    ["sm",["Lead conversion and what maps where",
+      "Campaign members and member statuses",
+      "Forecasting and territory management",
+      "Lead scoring and grading, home page assistant"]],
+    ["ss",["Queues",
+      "Support processes",
+      "Case auto-response rules",
+      "Einstein for Service"]],
+    ["pc",["Activity management — tasks and events",
+      "Salesforce mobile app: modifying it, branding, launchpad, visibility",
+      "Managed vs unmanaged packages, and who is allowed to publish",
+      "Chatter with internal vs external users"]],
+    ["ai",["Troubleshooting agent permissions and security",
+      "When it is and is not appropriate to use AI",
+      "Installing and updating prompts and instructions in Agent Builder",
+      "Light testing and conversation preview"]]
+  ];
+  const TAGS = {
+    name:"Near-miss feature name",
+    tool:"Right idea, wrong tool",
+    self:"Admin vs user self-service",
+    scope:"What controls what",
+    multi:"Multi-select slip",
+    not:"NOT / EXCEPT wording"
+  };
+  const Q = [
+    {n:1,d:"cs",t:["self"],q:"A user forgets their password and needs it reset. They are not locked out and the company does not use single sign-on. What should the Administrator recommend?",
+     o:[["The Administrator can unfreeze the user",0],["The user can reset their own password by clicking ‘Forgot Password’ on the login page",2],["The Administrator can reset the user’s password from the user record using ‘Change Password’",1],["The Administrator can unlock the user",0]],
+     w:"Not locked out and no SSO means the user can self-serve. Admin reset works, but it is not what you recommend. Unfreeze and unlock only apply to a frozen or locked account."},
+    {n:2,d:"cs",t:["multi"],q:"Your company’s financial year starts in February and ends in January. What must be done so this is reflected in Salesforce? (Choose 2)",
+     o:[["Select the fiscal year end month",0],["Create a custom fiscal year",1],["Select the fiscal year start month",2],["Create custom periods",0],["Use the standard fiscal year",2]],
+     w:"Feb–Jan is still a 12-month Gregorian year, so the standard fiscal year handles it — you only set the start month. Custom fiscal years are for calendars that do not follow Gregorian periods (4-4-5, 13 periods, etc.)."},
+    {n:6,d:"wa",t:["name"],q:"What tool helps you assess what Record-Triggered Flows exist for a particular object and in what order they fire?",
+     o:[["Schema Builder",0],["Flow Visualizer",1],["Debug Tool",0],["Flow Trigger Explorer",2]],
+     w:"Flow Trigger Explorer lists every Record-Triggered Flow on an object grouped by Fast Field Updates (before save), Actions and Related Records (after save), and Run Asynchronously, in run order. There is no ‘Flow Visualizer’."},
+    {n:7,d:"sm",t:["self"],q:"Opportunities have multiple record types. Users complain it is tedious to select a record type every time they create one. What could you recommend?",
+     o:[["Administrator can set the default record type at role level",0],["Administrator can set the default record type at profile level",1],["Users can set their default record type in Settings",2],["No default record type can be chosen",0]],
+     w:"A profile-level default still shows the selection screen when more than one record type is active. Each user skips it by setting their own default under Personal Settings → Set Default Record Types."},
+    {n:9,d:"sm",t:["multi"],q:"In addition to a score, what other information does Einstein Opportunity Scoring provide to help sales users close deals? (Choose 2)",
+     o:[["Recommended Next Steps",1],["Top Negatives",2],["Top Positives",2],["Similar Deals",1]],
+     w:"Scoring explains itself: hover the score to see Top Positives and Top Negatives (the factors that moved it). It does not recommend next steps or surface similar deals — you are thinking of Einstein Activity Capture / other Einstein features."},
+    {n:15,d:"pc",t:["multi"],q:"In Lightning Experience, what are some of the filtering options available in group feeds? (Choose 3)",
+     o:[["Posts with Comments",1],["Unread Posts",2],["Read Posts",0],["All Updates",2],["Unanswered Questions",2]],
+     w:"The group feed filters are All Updates, Unread Posts, All Questions, Unanswered Questions, Questions with No Best Answer, Questions with Best Answer. Nothing filters by comments or by read posts."},
+    {n:16,d:"ss",t:["name"],q:"A Case matches multiple rule entry criteria in a custom Case assignment rule. How does Salesforce determine which user or queue to assign the Case to?",
+     o:[["Case Assignment Priority",1],["Escalation Rule",0],["Case Assignment Rule Name",0],["Rule Entries Order",2]],
+     w:"Entries are evaluated in the Order number you set (1 before 2) and evaluation stops at the first match. There is no ‘assignment priority’ field. Same model for Lead assignment and escalation rules."},
+    {n:18,d:"da",t:["name","tool"],q:"Cloudy Computing wants a backup of all internal systems every week. What feature ensures Salesforce is backed up weekly?",
+     o:[["Export Wizard",1],["Data Export Service",2],["Import Wizard",0],["Schedule Data Loader",0]],
+     w:"Data Export Service (Setup → Data Export) schedules weekly or monthly exports. ‘Export Wizard’ does not exist, and Data Loader’s command-line scheduling is not a Salesforce-scheduled feature."},
+    {n:19,d:"om",t:["multi","scope"],q:"What is TRUE about converting a lookup relationship to a master-detail relationship? (Choose 2)",
+     o:[["You can convert even if the lookup field does not contain a value in all the records",0],["You cannot convert if there are roll-up summaries on the master object",1],["You can convert as long as the lookup field contains a value in all the records",2],["Converting changes the org-wide default to Controlled by Parent and the sharing model is updated to public read/write",2]],
+     w:"Every child record must already have a value in the lookup field, because master-detail children cannot be orphans. Roll-up summaries are a reason you cannot convert back the other way (master-detail → lookup), not a blocker going this direction."},
+    {n:29,d:"da",t:["multi"],q:"What are the three access levels you can grant to Report and Dashboard folders? (Choose 3)",
+     o:[["Viewer Access",2],["Private Access",1],["Editor Access",2],["Manager Access",2],["Public Access",1]],
+     w:"Folder access levels are Viewer, Editor, Manager. Private and Public describe how a folder is shared overall, not the access level granted to a user, role, or group."},
+    {n:30,d:"cs",t:["scope"],q:"Cloudy Computing has Trusted IP Ranges defined. A user tries to log in from outside those ranges. What happens?",
+     o:[["The user will need to contact the Administrator to grant them access",0],["The user will be able to login with no additional verification",0],["The user will not be able to login",1],["The user will receive a verification code that will then enable them to login",2]],
+     w:"Trusted IP Ranges (Network Access) only skip the identity challenge — outside them the user gets a verification code and can still log in. Login IP Ranges on the profile are the ones that hard-block. Know which is which."},
+    {n:31,d:"om",t:["multi","scope"],q:"What do Record Types control? (Choose 3)",
+     o:[["Path",2],["Fields",1],["Picklist Values",2],["Lightning App Builder Record Page Layout",1],["Page Layouts",2]],
+     w:"Record types control the page layout, the available picklist values, and the Path/business process. Field visibility is field-level security on the profile or permission set — record types never control fields."},
+    {n:33,d:"sm",t:["multi"],q:"Leads come from web-to-lead, inbound calls, and telemarketing, and should follow a qualification process based on where they originated. How can this be achieved? (Choose 3)",
+     o:[["Lead Processes",2],["Lead Status Picklist Field",2],["Page Layouts",0],["Custom Picklist Field",1],["Record Types",2]],
+     w:"Add every possible value to the standard Lead Status picklist, build a Lead Process per lead type that uses a subset of those values, then create a record type for each and assign its lead process. A custom picklist is not part of this."},
+    {n:34,d:"cs",t:["not"],q:"When creating users, which of the following does NOT need to be selected in order to save the record?",
+     o:[["Profile",0],["Username",0],["Nickname",1],["Role",2],["User License",0]],
+     w:"Role looks required on the user edit page but saves fine as ‘None Specified’. Nickname is genuinely required (it is auto-filled from the alias, which is why it feels optional)."},
+    {n:36,d:"sm",t:["multi"],q:"What are some features of Campaigns in Salesforce? (Choose 3)",
+     o:[["The Opportunity value will be added to the campaign statistics of all Campaigns related to the Opportunity",1],["All Salesforce users can create, edit, and delete Campaigns",0],["Campaign Member Statuses can be customized per Campaign",2],["Path can be used to visually track Campaign progress",2],["The Send List Email feature can be used to send a message to selected Campaign Members",2]],
+     w:"Only the Primary Campaign Source gets the Opportunity value in its statistics, even when several campaigns influenced the deal. Also note Campaigns need the Marketing User feature license, not just any profile."},
+    {n:37,d:"sm",t:["name"],q:"More than one sales team member works an Opportunity. When it is won, each should be recognized on the Opportunity with a percentage of the amount attributed to them. How?",
+     o:[["Sales Splits",0],["Team Splits",0],["Opportunity Team Splits",1],["Opportunity Splits",2]],
+     w:"The feature is Opportunity Splits (team selling must be enabled first). ‘Opportunity Team Splits’, ‘Team Splits’, and ‘Sales Splits’ are all invented names built from real words."},
+    {n:44,d:"ss",t:["tool"],q:"Cloudy Computing wants to link related Cases together. What would you recommend?",
+     o:[["Case Hierarchies",2],["Lookup Field",0],["Master-Detail Field",0],["Case Merge",1]],
+     w:"Populate Parent Case on the child to build a Case hierarchy. Case Merge combines duplicate Cases into one record — it removes Cases rather than relating them."},
+    {n:45,d:"cs",t:["not"],q:"Steve’s user record was created and activated, but he cannot log in. What is NOT a possible reason?",
+     o:[["Steve did not verify his account using the ‘Verify Account’ link within 4 hours of receipt",2],["IP restrictions have been set up for the org and Steve is outside of set IPs",0],["Steve did not verify his account using the ‘Verify Account’ link within 7 days of receipt",0],["Steve is using the wrong username",1],
+     ],
+     w:"Wrong username is a very common cause, so it cannot be the answer to a NOT question. Link expiration in Session Settings only offers 1 day, 7 days, or 180 days — there is no 4-hour option, which makes that the impossible one."},
+    {n:47,d:"cs",t:["not"],q:"What is NOT a lockout effective period in Salesforce?",
+     o:[["30 minutes",0],["60 minutes",0],["15 minutes",0],["1 day",2],["Forever",1]],
+     w:"Password Policies offers 15, 30, 60 minutes and Forever (until an admin resets). 1 day is not an option. ‘Forever’ sounds fake but is real."},
+    {n:48,d:"cs",t:["scope"],q:"Fields can be set to not-visible or read-only based on which of the following?",
+     o:[["Role",0],["Profile",2],["User License",0],["Feature License",1]],
+     w:"Field-level security is set by profile (and permission set). Roles drive record sharing, not field access. Licenses decide what a user can be granted, never field visibility."},
+    {n:49,d:"wa",t:["tool"],q:"Ava needs to automatically send a birthday greeting to customers at 9am on their birthday. What automation tool could be used?",
+     o:[["Autolaunched Flow",0],["Platform Event Triggered Flow",0],["Schedule-Triggered Flow",2],["Record-Triggered Flow",1]],
+     w:"Nothing changes on the record on someone’s birthday, so there is no trigger to fire. A Schedule-Triggered Flow runs daily at 9am over records matching a filter. Trigger question to ask yourself: did a record just change, or did the clock just tick?"},
+    {n:51,d:"sm",t:["multi","tool"],q:"New sales hires need training on the Opportunity process. How could the Administrator support this? (Choose 2)",
+     o:[["Create a Path for the Opportunity sales process",2],["Add a rich text component to the Lightning page, detailing the full sales process",1],["Add a Kanban component to the Opportunity page",0],["Add key fields and guidance for each stage in the sales process",2]],
+     w:"Path plus per-stage key fields and guidance is the built-in answer. A rich text block is technically possible, which is exactly why it is the distractor — the exam wants the declarative feature designed for the job."},
+    {n:52,d:"cs",t:["name"],q:"The five types of AppExchange solutions are:",
+     o:[["Apps, Bolt Solutions, Flow Solutions, Lightning Data, Components",2],["Apps, Community Solutions, Flow Solutions, Lightning Data, Components",0],["Apps, Classic Solutions, Flow Solutions, Lightning Data, Components",1],["Apps, Industry Solutions, Flow Solutions, Lightning Data, Components",0]],
+     w:"Apps, Bolt Solutions, Flow Solutions, Lightning Data, Components. Bolt Solutions are prebuilt industry templates — that is the word the other three options swap out."},
+    {n:54,d:"wa",t:["multi"],q:"Managers want to respond to approval requests via email. What is TRUE? (Choose 3)",
+     o:[["The Administrator can enable ‘Enable email approval response’ in Process Automation Settings",2],["The Administrator can define custom approval terms",0],["Approvers can respond with No/Reject/Rejected",2],["Approvers can respond with Yes/Approve/Approved",2],["The Administrator can enable ‘Enable email approval response’ in the individual Approval Process",1]],
+     w:"Email approval response is one org-wide switch in Process Automation Settings, not a per-process setting. The accepted words are fixed and cannot be customized."},
+    {n:58,d:"cs",t:["multi","scope"],q:"A custom object is the detail object in a master-detail relationship with Account. What is TRUE about the OWD for the custom object? (Choose 2)",
+     o:[["The OWD will be Public Read Only",1],["The OWD will be Controlled by Parent",2],["The OWD can be changed",0],["The OWD will be Public Read/Write",0],["The OWD cannot be changed",2]],
+     w:"A detail object inherits its parent’s access: OWD is set to Controlled by Parent and the field is not editable. Detail records have no owner, so no other OWD value is possible."},
+    {n:59,d:"pc",t:["not","name"],q:"What is NOT a type of Macro?",
+     o:[["Invokable Macro",2],["Regular Macro",0],["Irreversible Macro",0],["Bulk Macro",1]],
+     w:"Regular, Irreversible, and Bulk are the three macro types. ‘Invokable’ sounds right because of invocable Apex actions in Flow — different feature entirely."},
+    {n:60,d:"ss",t:["tool"],q:"Cases often involve contacting multiple Contacts at an Account. What feature keeps track of all Contacts involved in a Case?",
+     o:[["Account Teams",0],["Contact Teams",0],["Contact Roles",2],["Case Teams",1]],
+     w:"Case Contact Roles record which Contacts are involved and how (Technical Contact, Decision Maker, etc.). Case Teams are internal users working the Case, not customer contacts."}
+  ];
+
+  const PAIRS = [
+    ["Flow Visualizer","Flow Trigger Explorer","Lists Record-Triggered Flows on an object, in fire order"],
+    ["Export Wizard","Data Export Service","Setup → Data Export, weekly or monthly scheduled backup"],
+    ["Opportunity Team Splits","Opportunity Splits","Requires team selling; splits revenue across team members"],
+    ["Case Merge","Case Hierarchies","Parent Case field on the child builds the hierarchy"],
+    ["Case Teams","Contact Roles","Teams = internal users. Contact Roles = customer contacts"],
+    ["Case Assignment Priority","Rule Entries Order","Order number, first match wins, evaluation stops"],
+    ["Classic Solutions","Bolt Solutions","Prebuilt industry templates on AppExchange"],
+    ["Bulk Macro (real)","Invokable Macro (fake)","Types are Regular, Irreversible, Bulk"],
+    ["Trusted IP Ranges","Login IP Ranges","Trusted = skip verification. Login (profile) = hard block"],
+    ["Feature license","Profile","Field-level security is profile or permission set"],
+    ["Record-Triggered Flow","Schedule-Triggered Flow","No record change = no trigger. Use a schedule"],
+    ["Private / Public access","Viewer, Editor, Manager","The three report and dashboard folder access levels"]
+  ];
+
+  // Quizlet Platform Administrator Practice Test — 18/20
+  const QP = [
+    {n:1,d:"om",got:1,q:"Which standard object is commonly associated with roll-up summary fields in Salesforce?",
+     o:[["Contact",0],["Campaigns",0],["Case",0],["Opportunity",2]],
+     w:"Roll-up summaries only work across a master-detail relationship, and Opportunity is master to Opportunity Products — which is how Amount rolls up from the line items."},
+    {n:2,d:"wa",got:1,q:"If a company wants to automatically apply a specific discount to all products in an opportunity when it is marked as won, which feature should the Platform Administrator implement using Flow Builder?",
+     o:[["Automated discount application process",2],["Manual discount entry process",0],["Email notification for discounts",0],["Approval process for discounts",0]],
+     w:"A record-triggered flow on Opportunity fires when Stage changes to Closed Won and updates the related products. Approval processes route records to people; they do not apply values on their own."},
+    {n:3,d:"cs",got:0,q:"Describe how Sharing Rules can impact reporting capabilities for users in Salesforce.",
+     o:[["Sharing Rules limit reporting to only the records owned by the user.",1],["Sharing Rules have no impact on reporting capabilities.",0],["Sharing Rules only apply to records in public groups.",0],["Sharing Rules can enhance reporting capabilities by granting access to records owned by others, allowing users to generate comprehensive reports.",2]],
+     w:"You had this backwards. A report shows whatever the running user can see, so sharing rules widen what appears in a report. Being limited to your own records is what a Private OWD does when no sharing rule opens it up."},
+    {n:4,d:"sm",got:1,q:"What is the primary configuration needed to support multiple sales processes in Salesforce?",
+     o:[["Separate record types and sales processes for the different types of opportunities",2],["Validation rules that ensure that users are entering accurate sales stage information",0],["Public groups to limit record types and sales processes for opportunities",0],["Different page layouts that control the picklist values for the opportunity types",0]],
+     w:"A sales process controls which Stage values are available, and a record type ties that process to a layout. Page layouts control what is displayed, never which picklist values exist."},
+    {n:5,d:"ss",got:1,q:"What feature must be configured to ensure that customer emails automatically generate cases in Salesforce?",
+     o:[["Email-to-Case",2],["Case Escalation Rules",0],["Flow Automation",0],["Custom Email Service",0]],
+     w:"Email-to-Case turns inbound mail to a support address into cases. On-Demand Email-to-Case is the version that needs no agent installed behind the firewall."},
+    {n:6,d:"pc",got:1,q:"Describe the process a Platform Administrator would follow to implement a document merge solution in Salesforce.",
+     o:[["The Platform Administrator should first download the document merge solution from AppExchange to begin the implementation process.",2],["The Platform Administrator should configure the package from Salesforce Setup before downloading anything.",0],["The Platform Administrator should install a package from the Partner Portal without any prior steps.",0],["The Platform Administrator should create a managed package in AppExchange to implement the solution.",0]],
+     w:"Install from AppExchange first, then configure. Worth knowing the real-world order too: install into a sandbox, test, then push to production. This question is loosely worded — do not read too much into it."},
+    {n:7,d:"cs",got:1,q:"Describe how a custom permission set can enhance a marketer's ability to manage campaign relationships in Salesforce.",
+     o:[["A custom permission set is used solely for reporting purposes.",0],["A custom permission set restricts marketers from accessing sensitive data.",0],["A custom permission set is only applicable to system administrators.",0],["A custom permission set allows marketers to access opportunities, which is essential for managing campaign relationships effectively.",2]],
+     w:"Permission sets grant additional access on top of a profile without changing it. Note that campaign management also needs the Marketing User feature license, which is a checkbox on the user record rather than a permission set."},
+    {n:8,d:"ss",got:1,q:"What are two actions that can be performed with Case escalation rules in Salesforce?",
+     o:[["Change the Case Priority, Reopen the Case",0],["Send email notifications, Change the Case Priority",0],["Send email notifications, Reassign the Case",2],["Reassign the Case, Reopen the Case",0]],
+     w:"An escalation action reassigns the case to a new owner or queue and notifies up to five email addresses. It does not change priority or reopen anything."},
+    {n:9,d:"wa",got:0,q:"What are two types of automated actions that can be included in the approval process for time-off requests in Salesforce?",
+     o:[["Email Alert, Chatter Post",1],["Field Update, Email Alert",2],["Field Update, Autolaunched Flow",0],["Chatter Post, Autolaunched Flow",0]],
+     w:"The four approval process actions are Field Update, Email Alert, Task, and Outbound Message. A Chatter post is not one of them — that is the piece you got wrong."},
+    {n:10,d:"cs",got:1,q:"What is the primary reason for restricting access to sensitive records in Salesforce?",
+     o:[["Data security policies",2],["User permissions",0],["Record ownership",0],["Field-level security",0]],
+     w:"The others are mechanisms, not reasons. The driver is the policy; permissions, ownership, and FLS are how you enforce it."},
+    {n:11,d:"da",got:1,q:"What is one method a Platform Administrator can use to assess data quality for accounts and opportunities?",
+     o:[["Configure key fields as required fields on the page layout.",0],["Subscribe sales reps to a monthly report.",0],["Explore AppExchange for data quality solutions.",0],["Create a report for Accounts and Opportunities highlighting missing data.",2]],
+     w:"Report first to find out how bad it is. Making fields required only affects records created from that point forward and does nothing about the existing mess."},
+    {n:12,d:"ss",got:1,q:"Describe how Omni-Channel improves case management in Salesforce.",
+     o:[["Omni-Channel is used for sending bulk emails to customers.",0],["Omni-Channel is a reporting tool for analyzing case resolution times.",0],["Omni-Channel allows businesses to automatically route cases to the appropriate agents based on their availability and skill set.",2],["Omni-Channel is a feature that only applies to lead management.",0]],
+     w:"Omni-Channel pushes work to agents based on capacity and skills. Assignment rules by contrast just drop a case into a queue and wait for someone to pick it up."},
+    {n:13,d:"sm",got:1,q:"Describe why separate record types and sales processes are necessary for managing different sales processes in Salesforce.",
+     o:[["Public groups can effectively manage access to different sales processes without separate record types.",0],["Validation rules can enforce correct data entry without needing to differentiate sales processes.",0],["Separate record types and sales processes allow for distinct stages and fields tailored to each sales process, ensuring accurate tracking and reporting.",2],["Different page layouts can manage the sales processes without needing separate record types.",0]],
+     w:"Same principle as question 4, asked from the other direction. Distinct stages come from the sales process; distinct fields and layout come from the record type."},
+    {n:14,d:"ai",got:1,q:"What is one method a Platform Administrator can use to prevent an Employee Agent from answering questions about the CEO's private health plan?",
+     o:[["Configure assignment rules to assign the agent to employee data.",0],["Ensure the users' permissions restrict access to the CEO's health plan.",0],["Train the agent on employee health plans instead of the CEO's health plan.",0],["Modify the agent's instructions and guardrails to block questions related to the CEO's health plan.",2]],
+     w:"Instructions and guardrails control what topics an agent will engage with. In practice you would do both this and lock down the data, since an agent runs as a user and inherits that user's record access."},
+    {n:15,d:"da",got:1,q:"Describe how the running user setting on a dashboard can affect data visibility for support representatives in Salesforce.",
+     o:[["The running user is only used for auditing purposes and does not affect data visibility.",0],["The running user is irrelevant to dashboard visibility as it only affects report generation.",0],["The running user determines the data that is visible on the dashboard based on their access rights, which can lead to inappropriate data visibility for others.",2],["The running user is the person who created the dashboard and has no impact on data access.",0]],
+     w:"Everyone sees the dashboard through the running user's eyes, which is how people end up seeing data they should not. Set the running user to the logged-in user — a dynamic dashboard — to avoid it."},
+    {n:16,d:"da",got:1,q:"Why is creating a report for Accounts and Opportunities beneficial for assessing data quality?",
+     o:[["It automatically fixes data quality issues in the system.",0],["It provides a summary of all accounts and opportunities without detail.",0],["It allows the administrator to identify and address missing data in records.",2],["It generates a report that is only useful for sales reps.",0]],
+     w:"A report surfaces the gaps; it never fixes them. Pair it with a cross filter or a 'field equals blank' filter to isolate the incomplete records."},
+    {n:17,d:"cs",got:1,q:"In Salesforce, where can a Platform Administrator find the settings for Currencies, Fiscal Year, and Business Hours?",
+     o:[["Custom Settings",0],["User Management Settings",0],["Feature Settings",0],["Company Settings",2]],
+     w:"Setup → Company Settings holds Company Information, Fiscal Year, Business Hours, Holidays, and Currency Management. Custom Settings is a developer data store and unrelated."},
+    {n:18,d:"ss",got:1,q:"Which tool in Salesforce is specifically designed to manage the routing of cases to agents?",
+     o:[["Email-to-Case",0],["Case Assignment Rules",0],["Omni-Channel",2],["Lead Assignment Rules",0]],
+     w:"Assignment rules decide which queue or owner a case lands with at creation. Omni-Channel is the routing engine that then pushes it to an available, qualified agent."},
+    {n:19,d:"da",got:1,q:"What feature should a Platform Administrator use to categorize accounts based on the Contract Value field in Salesforce?",
+     o:[["Group Rows",0],["Filter Logic",0],["Detail Column",0],["Bucket Column",2]],
+     w:"A bucket column sorts values into named ranges such as Small, Medium, and Large without creating a formula field on the object."},
+    {n:20,d:"da",got:1,q:"Describe how the Bucket Column feature can be utilized to categorize account sizes in Salesforce reports.",
+     o:[["The Bucket Column feature is used to display detailed information about each record.",0],["The Bucket Column feature is used to filter out unwanted data from reports.",0],["The Bucket Column feature summarizes data into a single value for reporting purposes.",0],["The Bucket Column feature allows users to create custom categories for data based on specified criteria, such as Contract Value ranges.",2]],
+     w:"Buckets are report-only, so they cost nothing on the object and can be changed by whoever edits the report. The tradeoff is that they are not reusable across reports."}
+  ];
+
+  // Flashcards distilled from practice test 2 (Bridge GPT, 49/65)
+  const F = [
+    // --- Configuration & Setup ---
+    {i:1,d:"cs",f:"A company wants new customers to sign into its portal using their existing social media accounts, so they don't have to create another password. Which identity protocol should the administrator configure?",
+      b:"OpenID Connect. It adds an authentication layer on top of OAuth 2.0 and is built for modern social sign-on, letting an external social provider authenticate the user on your behalf."},
+    {i:2,d:"cs",f:"A sharing rule needs to grant Read/Write access to several roles plus a handful of individual users. What is the cleanest way to define who the rule applies to?",
+      b:"Create a public group containing those roles and users, then write one sharing rule that shares to the group. It is easier to build than a pile of individual rules, and far easier to understand a year later."},
+    {i:3,d:"cs",f:"What is the difference between org-wide defaults and sharing rules?",
+      b:"Org-wide defaults set the baseline level of access for an object. Sharing rules make automatic exceptions to that baseline for selected sets of users."},
+    {i:4,d:"cs",f:"When you define a sharing rule, which kinds of groups can you share with?",
+      b:"You can share by role, by territory, or by public group. You cannot share by profile — profiles never appear in sharing rules."},
+    {i:5,d:"cs",f:"How do you bundle several permission sets together for a job function, and how do you switch off a single permission inside that bundle without editing the underlying sets?",
+      b:"Permission set groups bundle the permission sets for a job function. Muting lets you disable specific permissions within the group, leaving the original permission sets untouched so they still work elsewhere."},
+    {i:6,d:"cs",f:"You assign a newly hired team member to an existing permission set group and the assignment fails with an error. What is the most likely cause?",
+      b:"Their user license does not support one of the permissions contained in the group. Licensing requirements apply to permission set groups exactly as they do to individual permission sets."},
+    {i:7,d:"cs",f:"The support team should only be able to log in Monday through Friday, 8am to 6pm, while everyone else keeps around-the-clock access. Where do you configure that?",
+      b:"Set Login Hours on the support team's profile. Role hierarchy governs data access rather than login timing, and the locale settings under Company Information only determine the time zone those hours are read in."},
+    {i:8,d:"cs",f:"A configuration change has broken a process and nobody will admit to making it. Where do you find out who changed what, and when?",
+      b:"View Setup Audit Trail, which tracks up to six months of structural changes to the org along with the user who made each one and the time it happened."},
+    {i:9,d:"cs",f:"How do you review who has been logging into the org over the past few months, including when they logged in and from which IP addresses?",
+      b:"Login History shows up to six months of login data, covering dates, times, users, and IP addresses. It is the right tool for both security tracking and monitoring adoption."},
+    {i:10,d:"cs",f:"What are session-based permission sets used for?",
+      b:"They grant permissions only for the duration of an activated session, which limits how long a user holds access to sensitive data in the org."},
+
+    // --- Object Manager & Lightning App Builder ---
+    {i:11,d:"om",f:"Every Attendee record must be tied to an Event, and deleting an Event must permanently delete all of its Attendees. What kind of field do you create, and on which object?",
+      b:"A master-detail relationship field on the Attendee object. Master-detail tightly couples the two objects and cascades the delete, and the relationship field always lives on the detail side."},
+    {i:12,d:"om",f:"The operations team asks you to convert a Rich Text Area field into a standard Text Area field. What do you tell them?",
+      b:"Salesforce won't allow it. A Rich Text Area can only be converted into a Long Text Area, and any embedded images are deleted the next time that field is saved."},
+    {i:13,d:"om",f:"How do you make a custom field appear on a Lightning record page only when Status equals Escalated, so that it shows up the moment a user changes the status during inline editing?",
+      b:"Use Dynamic Forms in the Lightning App Builder and put a visibility filter on that field. Field visibility rules are evaluated dynamically, so the field appears as soon as the criteria are met rather than after a refresh."},
+    {i:14,d:"om",f:"How do you display the earliest date found across all of a master record's child records?",
+      b:"Create a roll-up summary field on the master object using the MIN calculation type. SUM isn't available for date fields, and a formula field can't aggregate values across multiple child records."},
+    {i:15,d:"om",f:"How do you display two picklist values from a parent record as a single combined text string, separated by a slash, on the child record?",
+      b:"Build a text formula field on the child object using cross-object syntax. Wrap each picklist in TEXT() because they're being used in a text context, then join them with the & operator and the slash."},
+    {i:16,d:"om",f:"You need a component in Lightning App Builder that doesn't exist as a standard component, and custom development isn't an option. What can you do?",
+      b:"Find and install a third-party component from AppExchange. Once installed it appears in the Component Palette and can be dragged onto the canvas alongside standard and custom components."},
+    {i:17,d:"om",f:"You created a custom list button, but users can't see it anywhere on the related list. What step did you miss?",
+      b:"Adding the button to the related list itself. Edit the page layout of the parent object, open the related list's properties, and move the new button into the Selected Buttons area."},
+    {i:18,d:"om",f:"You built and saved a new Lightning record page, but users are still seeing the old one. Why?",
+      b:"Saving a page doesn't push it to anyone. You have to activate it and then assign it, either as the org default or by App, Record Type, and Profile."},
+    {i:19,d:"om",f:"You make changes to a Lightning page that was activated some time ago. Do you need to activate it again before users see the change?",
+      b:"No. Once you save the edits they are immediately available in both Lightning Experience and the Salesforce mobile app."},
+    {i:20,d:"om",f:"Chatter isn't available on one of your objects. What has to be enabled first, and which objects are exempt from that requirement?",
+      b:"Feed Tracking must be enabled on the object before Chatter is available for it. The only exceptions to that rule are the Group, Site, and User objects."},
+    {i:21,d:"om",f:"Different types of marketing campaigns each need to track a different set of fields. How do you set that up?",
+      b:"Create Campaign record types, and assign each one its own page layout so it shows only the fields relevant to that type of marketing effort."},
+    {i:22,d:"om",f:"A customer has several locations that each need their own record owner and sharing settings, but leadership wants one view of the whole corporate structure. How do you model that?",
+      b:"Create location-specific Account records and link them with the Parent Account field to form an Account Hierarchy. You get distinct ownership, sharing, and reporting per location while keeping the big-picture view."},
+
+    // --- Automation ---
+    {i:23,d:"wa",f:"What do you use when a flow needs to execute a separate flow from inside itself?",
+      b:"A subflow — running a flow within a flow. It lets you build a piece of logic once and reuse it across several flows."},
+    {i:24,d:"wa",f:"What has to happen in a flow before an Update Records element that uses a record variable will actually update the right record?",
+      b:"You have to get the record's Id into that record variable first, usually with an Assignment element that sets the variable's Id from a preceding Get Records or match step. Without the Id, Update Records has nothing to act on."},
+    {i:25,d:"wa",f:"A flow searches for a matching contact and must either update the one it finds or create a new one. How many Decision elements does that take, and how are the outcomes configured?",
+      b:"One Decision element placed after the match step. Configure a single outcome labeled 'Update Existing' with its conditions, and relabel the Default Outcome to 'Create New' to catch everything else."},
+    {i:26,d:"wa",f:"Which type of flow do you use to walk a user through a process and collect input from them along the way?",
+      b:"A Screen Flow, which creates automation that guides users and interacts with them. Record-triggered flows run on data changes, schedule-triggered flows run on a clock, and autolaunched flows run with no user interface at all."},
+    {i:27,d:"wa",f:"How do you store what a user types on a flow screen so you can create or update a record with it later?",
+      b:"Create a variable with a Record data type for that object, then choose 'Manually assign variables' in the screen component settings and map each screen output to a field on the record variable. A record choice set is a different thing — it populates the choices in a picklist."},
+    {i:28,d:"wa",f:"What is an invocable action in Flow, and what are some examples?",
+      b:"It's the general category of things a flow can call out to: sending an email, submitting a record for approval, posting to Chatter, calling Apex, or calling another flow."},
+    {i:29,d:"wa",f:"What runs when an approver rejects a record, and what kinds of actions can it perform?",
+      b:"Final rejection actions. An administrator can attach several automated actions to that stage, including field updates that change a status picklist or blank out a value, and email alerts that notify the record owner."},
+    {i:30,d:"wa",f:"In a two-step approval process, the direct manager approves the record and then the CEO rejects it. Which set of actions fires?",
+      b:"The final rejection actions, exactly as they would have at the first step. Final approval actions only run when a record is approved and there are no further approval steps left."},
+    {i:31,d:"wa",f:"How do you give approvers a single place to see every request that's waiting on them?",
+      b:"Add the Items to Approve component to the Home page, so their open approval requests are listed the moment they log in."},
+    {i:32,d:"wa",f:"A manager wants certain critical records reviewed and signed off by the right people before they take effect. Which tool fits?",
+      b:"An approval process. Validation rules and roll-up summary fields are formula-driven tools for tailoring apps, and the role hierarchy is a data security tool — none of them route a record for human review."},
+    {i:33,d:"wa",f:"How do you automatically reassign a case that hasn't been resolved within a set amount of time, and what clock is that time measured against?",
+      b:"Escalation rules, which trigger an action such as reassigning the case once it goes unsolved past a defined time. The timing is calculated against the organization's business hours."},
+    {i:34,d:"wa",f:"How do you integrate Salesforce with an outdated desktop application that has no API available?",
+      b:"Use MuleSoft RPA, which interacts with desktop and web applications through their graphical user interfaces when standard API connectivity isn't an option."},
+
+    // --- Data & Analytics ---
+    {i:35,d:"da",f:"Every sales manager needs the same dashboard, but each should only see their own team's numbers. Do you build one dashboard or one per manager?",
+      b:"One dynamic dashboard, with the running user set to the logged-in user. Each viewer sees only the data their own security and sharing settings allow, which removes the need for duplicate dashboards."},
+    {i:36,d:"da",f:"A Sales Director wants a visual summary of the team's pipeline in their inbox every Monday morning, without having to log into Salesforce. How do you deliver that?",
+      b:"Schedule the dashboard to refresh and be emailed automatically on that schedule. A report subscription would send data rather than the visuals, and workflow rules can't email dashboards at all."},
+    {i:37,d:"da",f:"How do you export a report so it can be manipulated in a spreadsheet, with no formatting, groupings, or subtotals in the way?",
+      b:"Export it as Details Only, in either .csv or .xls format. The Formatted Report option is the one that preserves the report's formatting, groupings, and subtotals."},
+    {i:38,d:"da",f:"How do you group a report by the calendar month of the Close Date?",
+      b:"Click the arrow in the Close Date summary row, hover over Group Date By, and select Calendar Month. Bucket columns are for sorting values into named categories, not for grouping date fields."},
+    {i:39,d:"da",f:"Which report filters does filter logic apply to, and which does it leave alone?",
+      b:"Filter logic adds Boolean conditions like AND, OR, and NOT across field filters only. It does not apply to standard filters such as the date range or the Show Me filter."},
+    {i:40,d:"da",f:"A dashboard needs to display several columns of report data rather than a single number or a graphic. Which widget type do you use?",
+      b:"A table, which shows a set of report data in column form. A metric widget is for one key value, while funnel and scatter charts are for showing data graphically."},
+    {i:41,d:"da",f:"In Dataloader.io, how do you filter an export so it only includes Accounts whose Type contains 'Customer'?",
+      b:"Click SOQL Query to expand the menu and add a WHERE clause, such as WHERE Type LIKE '%Customer%'. The Fields menu selects which columns come back; it doesn't filter the rows."},
+    {i:42,d:"da",f:"A consulting firm needs to automate the export of its Salesforce data and use APIs to push it into another system. Which method should the administrator use?",
+      b:"Install the Data Loader client application and run it from the command line, which is the option built for automating exports and integrating with other systems via APIs. Data Export Service only schedules weekly or monthly backup exports."},
+    {i:43,d:"da",f:"What needs to happen to your data and your field mapping before you run a Data Import Wizard load?",
+      b:"Clean the data and remove duplicates first, then save the file as a CSV. In the wizard, choose to add new records and manually edit the field mapping for any column whose name doesn't match a Salesforce field, such as mapping Address Line 1 to Street."},
+    {i:44,d:"da",f:"What's the quickest way to confirm that an import actually landed the way you intended?",
+      b:"Build a list view on the object filtered to Last Modified Date equals TODAY, plus a field that should have been populated by the import, such as Account Site not equal to blank."},
+
+    // --- Service & Support ---
+    {i:45,d:"ss",f:"A support team has its case data model, queues, and basic assignment rules in place. Now they need to enforce SLAs for premium customers and automatically push incoming work to available reps. Which features do you configure?",
+      b:"Entitlements and milestones to define the promised response times and SLAs, and Omni-Channel routing to push work to the right available service reps."},
+    {i:46,d:"ss",f:"What does the Knowledge Component do on a case page?",
+      b:"It's an intelligent sidebar that suggests relevant articles based on the case subject and description, and lets the agent attach one to the case or email it to the customer in a single click. Agents can also search articles, create new ones, and vote on how helpful they are."},
+    {i:47,d:"ss",f:"What is Service Assistant, and how is it configured?",
+      b:"It's an Agentforce feature that builds a service plan — the list of steps for resolving that specific case — and walks the agent through them. You configure it in Agentforce Builder using topics, instructions, and a data library, and it includes quick actions that automate individual steps."},
+    {i:48,d:"ss",f:"Beyond helping agents find answers faster, why does a well-maintained knowledge base matter?",
+      b:"It supplies the trusted data that grounds AI service tools. If the articles are stale or wrong, the AI's answers will be too."},
+    {i:49,d:"ss",f:"What is Agentforce for Service?",
+      b:"It empowers AI agents to help customers with autonomous, natural-sounding responses that are grounded in the organization's own service data."},
+
+    // --- Agentforce ---
+    {i:50,d:"ai",f:"An AI agent assisting service reps has been giving advice that violates internal compliance rules and failing to trigger the correct data-gathering flows. Where do you look to understand how it made those decisions?",
+      b:"Enriched event logs, which capture detailed session data including the agent's reasoning, which topics and actions were called, and whether it stayed inside its assigned guardrails."},
+    {i:51,d:"ai",f:"Once an agent has been built, what do you use in Agentforce Builder to customize and refine how it behaves?",
+      b:"Natural language instructions, your own business logic in the form of flows, Apex, or prompt templates, and the data the agent needs to do its job. Profiles, workflow rules, and dashboards aren't part of defining agent logic."},
+    {i:52,d:"ai",f:"A customer changes the subject partway through a conversation with an agent. How does the reasoning engine handle that?",
+      b:"It interprets the new request, classifies it into a different topic, and transitions to a new plan. Insights it gains from topics and actions can also change its behavior and influence the next steps it takes."},
+
+    // --- Productivity & Collaboration ---
+    {i:53,d:"pc",f:"A team needs a collaboration space that doesn't show up in searches, in list views, or to anyone who isn't a member. What kind of group is that, and what has to happen before you can create one?",
+      b:"An unlisted group. The feature is disabled by default, so an administrator has to enable unlisted groups in Chatter Settings first."},
+
+    // --- Sales & Marketing ---
+    {i:54,d:"sm",f:"What does a Salesforce Campaign actually give a marketing team?",
+      b:"It acts as a container for a marketing effort: marketers can group the assets together, track the leads and contacts they targeted along with their responses, and analyze how much pipeline was built and how many deals closed as a result."},
+    {i:55,d:"sm",f:"You added guidance for success to a Sales Path, but it isn't appearing on a particular opportunity. What's the likely cause?",
+      b:"Path Settings ties a path to a specific Object, Record Type, and Picklist, so the guidance only appears on records of that record type. The opportunity is almost certainly on a different one."},
+    {i:56,d:"sm",f:"What's the difference between Salesforce Campaigns and Marketing Cloud Engagement?",
+      b:"Campaigns organize and track marketing efforts inside CRM. Marketing Cloud Engagement is the separate suite used to define digital marketing strategy, create personalized customer connections, and automate customer interactions."},
+    {i:57,d:"sm",f:"AppExchange offers both pre-built solutions and consultants. When do you reach for each one?",
+      b:"Pre-built solutions when you need to extend functionality or integrate an external tool quickly and out of the box. Consultants when the work is a custom, complex implementation tailored to specific business or industry requirements."}
+  ];
+
+  // Flashcards 2 — distilled from practice test 4 (Bridge GPT, 46/60)
+  const F2 = [
+    // --- Automation ---
+    {i:1,d:"wa",f:"What are logic elements in Flow, and what do they do?",
+      b:"They interact with the flow itself rather than the outside world — evaluating and manipulating data, and creating multiple paths the flow can take based on defined criteria. Decision, Assignment, and Loop are the ones you'll use most."},
+    {i:2,d:"wa",f:"A flow needs to send a customized email, post to a Chatter group, and push data to an external system. Which category of flow element handles that?",
+      b:"Interaction elements, specifically the Action element. Actions let a flow communicate outside itself — to users, customers, and external systems — for things like emails, Chatter posts, and notifications."},
+    {i:3,d:"wa",f:"A process needs screens, conditional logic, record updates, and a generated PDF. The company prefers declarative tools. What's the right build?",
+      b:"A hybrid. Use Flow Builder for the screens, logic, and data updates, then call a custom Apex plugin for the PDF, because native flow functionality can't generate one. Declarative first, code only where the platform genuinely can't reach."},
+    {i:4,d:"wa",f:"You're adding days to a date inside a flow and the formula won't behave. What's the likely cause?",
+      b:"The variable is the wrong data type. Date arithmetic requires a variable with a Date or Date/Time data type — storing it as Text breaks the formula and flow logic."},
+    {i:5,d:"wa",f:"Before building an approval process where requests route to the submitter's manager, what has to be in place?",
+      b:"The Manager field has to be populated on the submitter's user record, under Approver Settings. No custom lookup field, permission set, or escalation rule is involved."},
+    {i:6,d:"wa",f:"A final approver approves a record. What can the final approval actions do?",
+      b:"Set the approval status to Approved, unlock the record for future updates, and notify the person who submitted the request."},
+    {i:7,d:"wa",f:"How do you automatically assign leads by territory, and what happens to the ones that don't match anybody?",
+      b:"A lead assignment rule assigns on predefined criteria such as geography or sales territory. Leads that can't be assigned to a specific user route to a queue where the next available rep can claim them."},
+
+    // --- Object Manager & Lightning App Builder ---
+    {i:8,d:"om",f:"Which feature controls the fields shown in the highlights panel at the top of a record?",
+      b:"Compact layouts. Custom buttons and links and quick actions solve different UI problems, and Schema Builder is a data modeling tool."},
+    {i:9,d:"om",f:"How do you give console agents access to History, Macros, and the Open CTI Softphone from the bar at the bottom of the console?",
+      b:"In App Manager, open the Utility Items page and click Add Utility Item. Navigation Items adds objects like Accounts and Cases, and Navigation Rules decides whether records open as workspace tabs or subtabs."},
+    {i:10,d:"om",f:"You built a custom App Page and want it to be the landing page for everyone in the Sales app. How?",
+      b:"During activation, add the page to the Sales app and move it to the top position of the navigation menu. By default it lands in second position, which adds it to the menu without making it the landing page."},
+    {i:11,d:"om",f:"How do you build a Lightning page in the open without users seeing it before it's ready?",
+      b:"Use 'Activate for System Administrators only.' You can see and test the page fully in the UI while users can't access it until you change the visibility."},
+    {i:12,d:"om",f:"Desktop users need a component on a record page that mobile users shouldn't see. How do you handle that in Lightning App Builder?",
+      b:"Components support specific form factors. Activate the record page for the Desktop form factor with that component, then create and assign a different page for the Phone form factor."},
+    {i:13,d:"om",f:"You created a custom Home page for support agents. How do you make sure only they see it?",
+      b:"Activate it in Lightning App Builder by clicking App and Profile, then Assign to Apps and Profiles, and select the app (such as Service Console) along with the specific profiles. Page layouts, roles, and public groups play no part in Home page assignment."},
+    {i:14,d:"om",f:"Account Teams is enabled but the related list doesn't appear on the Account page. How do you fix it?",
+      b:"Add it to the layout: Setup → Edit Object → Page Layouts → the relevant Account layout → Related Lists → drag the Account Team component onto the layout → Save. Enabling the feature doesn't place the related list for you."},
+    {i:15,d:"om",f:"What can and can't an administrator do with standard objects?",
+      b:"You can customize them by adding custom fields — checkbox fields for yes/no data, date fields for milestones. You cannot create new standard objects, and system fields are read-only."},
+    {i:16,d:"om",f:"Which tool builds custom Lightning pages and field-ready apps with point and click?",
+      b:"Lightning App Builder. Event Monitoring surfaces org insights, company-wide org settings handle regional and currency configuration, and custom objects capture data rather than build pages."},
+
+    // --- Configuration & Setup ---
+    {i:17,d:"cs",f:"You need to completely block logins from outside the corporate network. Which setting does that, and which one only looks like it does?",
+      b:"Login IP Ranges on the profile hard-block access. Trusted IP Ranges under Network Access only skip identity verification for recognized addresses — they never deny a login."},
+    {i:18,d:"cs",f:"How do you make a field visible to everyone but editable by only a few profiles?",
+      b:"Set field-level security to Read-Only for all profiles, then deselect Read-Only for the specific profiles that need edit access. Visible plus read-only is the combination that does it."},
+    {i:19,d:"cs",f:"What are the access levels on a report or dashboard folder, and which one lets you rename or share the folder itself?",
+      b:"Viewer, Editor, and Manager. Only Manager can rename the folder, share it, change its sharing settings, or delete it — Editor only manages the reports and dashboards inside."},
+    {i:20,d:"cs",f:"What's the difference between Installed Packages in Setup and My Installs & Subscriptions on AppExchange?",
+      b:"Installed Packages covers one org. My Installs & Subscriptions shows every account connected to your Trailblazer account, lets you filter installs by status such as Free Installs, and lets you uninstall centrally across orgs."},
+    {i:21,d:"cs",f:"What are the best practices for installing a package into production?",
+      b:"Prefer a managed package, since it installs without counting against your org's app, tab, and object limits. Always test in a Developer Edition org or sandbox first, and if you're unsure who needs it, grant access to admins only."},
+    {i:22,d:"cs",f:"You have zero budget and specific technical requirements. What's the fastest way to find a fit among thousands of AppExchange listings?",
+      b:"Search by keyword and then apply the filters — pricing, supported features, edition — rather than browsing categories."},
+
+    // --- Data & Analytics ---
+    {i:23,d:"da",f:"A manager wants opportunities grouped by stage with subtotals and a chart. Which report format?",
+      b:"Summary. Tabular is a simple list that supports neither grouping nor charts unless you apply a row limit, and matrix groups by rows and columns, which is more than was asked for."},
+    {i:24,d:"da",f:"What is bucketing, and what does it save you from building?",
+      b:"It segments report data on the fly by defining categories or ranges to sort, group, or filter by — without creating a custom field on the object."},
+    {i:25,d:"da",f:"Which report filters can filter logic reference, and which are excluded?",
+      b:"Only the field filters you add yourself, which are numbered 1, 2, 3 and referenced by those numbers. Standard filters sit at the top — the date field and range, Show Me, and object-specific ones like Opportunity Status — and always apply with an implicit AND that you can't write logic around."},
+    {i:26,d:"da",f:"In the report builder, what is the Fields panel used for?",
+      b:"It lists every available field. You add them by dragging from the panel into the Outline tab, the Filter tab, or straight into the report preview."},
+    {i:27,d:"da",f:"How often can the Data Export Service run, and does that depend on edition?",
+      b:"Weekly is the maximum for Enterprise, Performance, and Unlimited. Professional and Developer Editions are limited to monthly, which is every 29 days. Daily isn't offered at all."},
+    {i:28,d:"da",f:"Duplicate accounts are being created with slightly different address spellings. How do you stop it?",
+      b:"Create a custom matching rule using fuzzy matching on the address field, then create a duplicate rule paired with that matching rule and set the action on create and edit to Block."},
+
+    // --- Sales & Marketing ---
+    {i:29,d:"sm",f:"A sales director using Salesforce Foundations wants to improve day-to-day rep productivity. What do you point them at?",
+      b:"The activity timeline and integrated email. Leads and opportunities power the sales process and forecasting drives projections — neither is aimed at daily productivity."},
+    {i:30,d:"sm",f:"One sales team needs a different set of opportunity stages than everyone else. What's the sequence?",
+      b:"Create a sales process defining those stages, create a record type linked to that sales process, then assign the record type to the right profiles. Process first, then record type, then profile."},
+    {i:31,d:"sm",f:"How do you give reps a structured, repeatable follow-up sequence for different lead types?",
+      b:"Cadences in Sales Engagement, which let managers build custom step-by-step sales processes so follow-up stays consistent."},
+    {i:32,d:"sm",f:"Which fields show on the cards in Kanban view, and how do you change them?",
+      b:"Whatever is selected in the underlying list view. Open List View Controls and choose Select Fields to Display."},
+
+    // --- Service & Support ---
+    {i:33,d:"ss",f:"What makes the Service Console different from a standard app for an agent juggling several cases?",
+      b:"Tab-focused navigation: records open as primary tabs and related records open as subtabs beneath them, so agents don't lose their place or end up with dozens of browser tabs."},
+    {i:34,d:"ss",f:"Agents can't set themselves to available or accept routed chats. What's missing?",
+      b:"The Omni-Channel utility hasn't been added to the app's utility bar. Without it they have no way to change status or accept incoming work."},
+    {i:35,d:"ss",f:"How do you stop the Entitlement lookup from returning expired entitlements?",
+      b:"In Entitlement Settings, limit the lookup to entitlements with an Active status. It's a standard setting — no validation rule or lookup filter needed."},
+
+    // --- Agentforce ---
+    {i:36,d:"ai",f:"In Agentforce Builder, what's the difference between the Instructions field, the Classification Description, and the Scope?",
+      b:"Instructions describe the job the agent performs and act as its guardrails — that's where a transfer rule goes. Classification Description tells the agent when to use a topic, and Scope defines what it can do within that topic."},
+    {i:37,d:"ai",f:"What is the Reason, Act, Observe loop?",
+      b:"How the Agentforce reasoning engine works: it reviews context (Reason), executes a task such as creating a ticket (Act), and monitors the outcome (Observe)."},
+    {i:38,d:"ai",f:"An agent gave an answer that doesn't match business logic. Which tool shows you which topic fired and how it reasoned?",
+      b:"The Plan Tracer, which displays the initial user prompt, the topic the agent selected, and the step-by-step reasoning behind the response."},
+    {i:39,d:"ai",f:"Which tool runs batch tests against your agents before you trust them in production?",
+      b:"Agentforce Testing Center. Prompt Builder creates prompt templates, Agentforce Builder creates and customizes the agent, and Einstein Audit and Feedback Data stores generative AI audit data in Data Cloud."},
+    {i:40,d:"ai",f:"Where do you set an agent's default language, its additional supported languages, and its conversational tone?",
+      b:"The Language Settings panel in Agentforce Builder, which handles all three natively — including setting a tone such as Casual to match the brand."}
+  ];
+
+  const DEFS = [
+    ["Security & Access","Organization-Wide Defaults (OWD)","The baseline record access for an object — Private, Public Read Only, Public Read/Write, or Controlled by Parent. Everything else only opens access up from here."],
+    ["Security & Access","Sharing Rule","An automatic exception to the OWD that grants extra access to a set of users. Shared by role, by territory, or by public group — never by profile."],
+    ["Security & Access","Public Group","A named collection of users, roles, and other groups. Use one when a sharing rule would otherwise need several roles plus individuals."],
+    ["Security & Access","Role Hierarchy","Controls record access upward: managers see what their subordinates own. It has nothing to do with field access or login rules."],
+    ["Security & Access","Profile","Defines what a user can do — object and field permissions, login hours, login IP ranges, page layout and record type assignment. Every user has exactly one."],
+    ["Security & Access","Permission Set","Additional permissions granted on top of a profile without changing the profile. A user can have many."],
+    ["Security & Access","Permission Set Group","A bundle of permission sets assigned together for a job function."],
+    ["Security & Access","Muting Permission Set","Switches off specific permissions inside a permission set group, leaving the underlying permission sets intact for use elsewhere."],
+    ["Security & Access","Session-Based Permission Set","Grants permissions only for the duration of an activated session, limiting how long a user holds sensitive access."],
+    ["Security & Access","Field-Level Security (FLS)","Controls whether a field is visible or read-only, set by profile or permission set. Visible plus read-only for everyone, then deselect read-only for the profiles that need to edit."],
+    ["Security & Access","Login IP Ranges","Set on the profile. Logins from outside the range are blocked outright."],
+    ["Security & Access","Trusted IP Ranges","Set org-wide under Network Access. Logins inside the range skip identity verification; logins outside still work but trigger a verification code. Never blocks."],
+    ["Security & Access","Login Hours","Profile setting restricting the days and times a user can log in."],
+    ["Security & Access","Setup Audit Trail","Six months of configuration changes with who made each one and when. The first stop when something in the org changed unexpectedly."],
+    ["Security & Access","Login History","Six months of login records including date, time, user, and IP address."],
+    ["Security & Access","Session Settings","Org-level security controls including session timeout and how long a new user's verification link stays valid — 1 day, 7 days, or 180 days."],
+    ["Security & Access","Password Policies","Where password expiry, complexity, history, and the lockout effective period are set. Lockout options are 15, 30, or 60 minutes, or Forever until an admin resets."],
+    ["Security & Access","OAuth 2.0","An authorization framework that lets one service act on a user's behalf without handling their password."],
+    ["Security & Access","OpenID Connect","An authentication layer on top of OAuth 2.0, used for social sign-on so an external provider can verify who the user is."],
+    ["Security & Access","Single Sign-On (SSO)","Users authenticate once with an external identity provider and reach Salesforce without a separate password."],
+    ["Security & Access","Multi-Factor Authentication (MFA)","A second verification factor beyond the password. Required on Salesforce logins."],
+    ["Security & Access","My Domain","A branded login URL for the org, and a prerequisite for SSO and several Lightning features."],
+    ["Security & Access","User License","Determines the broad set of features a user can be granted at all. A permission the license does not support cannot be assigned, even inside a permission set group."],
+    ["Security & Access","Feature License","An add-on capability toggled on the user record, such as Marketing User or Knowledge User."],
+    ["Security & Access","Freeze vs Deactivate","Freezing blocks login while preserving the license; deactivating frees the license. Users are never deleted."],
+    ["Security & Access","Folder Access Levels","Viewer, Editor, and Manager. Only Manager can rename, share, change sharing settings, or delete the folder itself."],
+
+    ["Data Model","Standard Object","A Salesforce-provided object such as Account, Contact, Lead, Opportunity, or Case. You can add custom fields but cannot create new standard objects."],
+    ["Data Model","Custom Object","An object you create to hold data Salesforce does not model out of the box. API names end in __c."],
+    ["Data Model","Lookup Relationship","A loose link between two records. The child can exist without a parent, and deleting the parent leaves the child behind."],
+    ["Data Model","Master-Detail Relationship","A tight link where the detail record has no owner of its own, inherits sharing from the master, and is deleted when the master is. The relationship field always lives on the detail object."],
+    ["Data Model","Junction Object","A custom object with two master-detail relationships, used to build a many-to-many relationship."],
+    ["Data Model","Controlled by Parent","The OWD automatically applied to a detail object in a master-detail relationship. It cannot be changed."],
+    ["Data Model","Roll-Up Summary Field","A field on the master object that aggregates its children — COUNT, SUM, MIN, or MAX. Requires master-detail. SUM does not work on dates; MIN gives you the earliest date."],
+    ["Data Model","Formula Field","A read-only field calculated at runtime. It cannot aggregate multiple child records, which is what separates it from a roll-up summary."],
+    ["Data Model","Cross-Object Formula","A formula that reaches up the relationship to pull a parent field onto the child, written as Parent__r.Field__c."],
+    ["Data Model","TEXT() function","Converts a picklist or number into text so it can be concatenated with the & operator."],
+    ["Data Model","Rich Text Area","A field holding formatted text and images. It converts only to Long Text Area, and the images are deleted on the next save."],
+    ["Data Model","Dependent Picklist","A picklist whose available values are filtered by the value chosen in a controlling field."],
+    ["Data Model","Validation Rule","A rule that blocks a save when its formula evaluates to true, and shows an error message."],
+    ["Data Model","Schema Builder","A visual canvas for viewing and editing the org's objects, fields, and relationships."],
+    ["Data Model","Account Hierarchy","Accounts linked through the Parent Account field, giving each location its own ownership and sharing while preserving the corporate view."],
+
+    ["UI & App Builder","Record Type","Controls which page layout a user sees, which picklist values are available, and which business process applies. It never controls field-level security."],
+    ["UI & App Builder","Business Process","The subset of stage or status values tied to a record type — Sales Process on Opportunity, Lead Process on Lead, Support Process on Case."],
+    ["UI & App Builder","Page Layout","Determines which fields, related lists, and buttons appear on a record and in what arrangement."],
+    ["UI & App Builder","Compact Layout","Controls the fields shown in the highlights panel at the top of a record and in the mobile preview."],
+    ["UI & App Builder","Lightning App Builder","The point-and-click tool for building record pages, app pages, and home pages from standard, custom, and AppExchange components."],
+    ["UI & App Builder","Dynamic Forms","Places individual fields on a Lightning record page with their own visibility rules, evaluated live during inline editing."],
+    ["UI & App Builder","Component Visibility Filter","A condition on a component or field that decides whether it renders, based on record values, the user, or the device."],
+    ["UI & App Builder","Form Factor","Desktop versus phone. A Lightning page can be activated for one form factor and a different page used for the other."],
+    ["UI & App Builder","Page Activation","Saving a Lightning page does not publish it. You activate it and assign it as org default or by App, Record Type, and Profile. Editing an already-active page needs no reactivation."],
+    ["UI & App Builder","Activate for System Administrators Only","A visibility setting that lets you test a page in the live UI while users still see the old one."],
+    ["UI & App Builder","App Page","A custom Lightning page added to an app's navigation menu. Placed in the top position it becomes the landing page for that app."],
+    ["UI & App Builder","Quick Action vs Global Action","Quick actions live on a specific object; global actions are available from anywhere and are not tied to a record."],
+    ["UI & App Builder","Custom List Button","A button for a related list. Creating it is only half the job — it must then be added to the related list's Selected Buttons on the parent layout."],
+    ["UI & App Builder","List View","A saved, filtered set of records. The fields chosen here also drive what appears on Kanban cards."],
+    ["UI & App Builder","Kanban View","A drag-and-drop board grouped by a picklist such as Stage. Card fields come from Select Fields to Display in List View Controls."],
+    ["UI & App Builder","Path","Stage-by-stage guidance on a record showing key fields and guidance for success. Configured in Path Settings against an object, record type, and picklist."],
+    ["UI & App Builder","Utility Bar","The bar at the bottom of an app holding tools like History, Macros, Notes, and Omni-Channel. Configured in App Manager under Utility Items."],
+    ["UI & App Builder","Navigation Items vs Navigation Rules","Navigation Items sets which objects appear in the app's nav bar; Navigation Rules decides whether records open as workspace tabs or subtabs."],
+
+    ["Automation","Flow Builder","The primary declarative automation tool. Workflow Rules and Process Builder are retired."],
+    ["Automation","Screen Flow","A flow with a user interface that guides someone through a process and collects input."],
+    ["Automation","Record-Triggered Flow","Runs when a record is created, updated, or deleted. Before-save runs fast field updates on the same record; after-save handles related records and actions."],
+    ["Automation","Schedule-Triggered Flow","Runs on a set date and time at a set frequency against a batch of records. The right choice when nothing on the record changes to trigger anything."],
+    ["Automation","Autolaunched Flow","Runs with no user interface, called from another flow, Apex, a process, or a button."],
+    ["Automation","Subflow","An element that calls another flow from inside the current one, so shared logic is built once."],
+    ["Automation","Logic Elements","Flow elements that work on the flow itself — Decision, Assignment, Loop — evaluating data and branching the path."],
+    ["Automation","Interaction Elements","Flow elements that reach outside the flow — the Action element sending email, posting to Chatter, or calling an external system."],
+    ["Automation","Invocable Action","The general category of things a flow can call: send email, submit for approval, post to Chatter, call Apex, call another flow."],
+    ["Automation","Decision Element","Branches a flow. One decision can carry several configured outcomes plus the Default Outcome, which you can relabel."],
+    ["Automation","Assignment Element","Sets values into variables — including putting a record's Id into a record variable before an Update Records element runs."],
+    ["Automation","Record Variable","A variable holding a whole record for an object. Screen outputs map into it when you choose Manually assign variables."],
+    ["Automation","Record Choice Set","Populates the choices in a flow picklist from records in the database."],
+    ["Automation","Flow Trigger Explorer","Lists every record-triggered flow on an object grouped by fast field updates, actions and related records, and asynchronous — in the order they fire."],
+    ["Automation","Order of Execution","The fixed sequence Salesforce follows on save: validation, before-save flows, triggers, duplicate rules, after-save flows, assignment rules, workflow, escalation, roll-ups, and commit."],
+    ["Automation","Approval Process","Routes a record to named approvers before it takes effect. Approvers come from the Manager field on the user record or a defined hierarchy."],
+    ["Automation","Approval Actions","Initial Submission, Final Approval, Final Rejection, and Recall. Available action types are Field Update, Email Alert, Task, and Outbound Message — no Chatter post."],
+    ["Automation","Final Approval vs Final Rejection","Final approval actions run only when the record is approved with no steps remaining. A rejection at any step fires the final rejection actions."],
+    ["Automation","Email Approval Response","Lets approvers reply to the notification email with approve, approved, yes, reject, rejected, or no. Enabled once org-wide in Process Automation Settings, not per process."],
+    ["Automation","Items to Approve","A Home page component listing every approval request waiting on the logged-in user."],
+    ["Automation","Assignment Rule","Assigns a new case or lead to a user or queue. Entries are evaluated in order and stop at the first match."],
+    ["Automation","Auto-Response Rule","Sends an automatic acknowledgment email when a case or lead comes in from the web or email."],
+    ["Automation","Escalation Rule","Reassigns a case and notifies people when it has gone unresolved past a time limit, measured against Business Hours."],
+    ["Automation","Business Hours","The operating schedule used by escalation rules, entitlements, and milestones."],
+    ["Automation","Apex","Salesforce's programming language. Reach for it only when declarative tools cannot do the job — generating a PDF from a flow, for example."],
+    ["Automation","MuleSoft RPA","Drives desktop or web applications through their user interface when a system has no API to integrate with."],
+
+    ["Data & Analytics","Report Type","Defines which objects and fields a report can draw on, and whether related records are required or optional."],
+    ["Data & Analytics","Tabular Report","A simple list with no grouping. Supports a chart only when a row limit is applied."],
+    ["Data & Analytics","Summary Report","Groups rows, shows subtotals, and supports charts. The default answer for grouped reporting."],
+    ["Data & Analytics","Matrix Report","Groups by rows and columns at once, for cross-tab analysis."],
+    ["Data & Analytics","Joined Report","Combines several report blocks, potentially across different report types, in one view."],
+    ["Data & Analytics","Bucket Column","Sorts values into named categories or ranges inside a report, with no custom field on the object. Report-only, so not reusable elsewhere."],
+    ["Data & Analytics","Filter Logic","Boolean conditions — AND, OR, NOT — applied across numbered field filters."],
+    ["Data & Analytics","Standard Filter","The filters at the top of a report: date field and range, Show Me, and object-specific ones. They always apply with an implicit AND and cannot be referenced in filter logic."],
+    ["Data & Analytics","Field Filter","A filter you add yourself. These are the numbered ones that filter logic can reference."],
+    ["Data & Analytics","Cross Filter","Filters a report by whether related records exist — accounts with or without opportunities, for example."],
+    ["Data & Analytics","Group Date By","The report option that rolls a date field up to calendar month, quarter, year, or fiscal period."],
+    ["Data & Analytics","Fields Panel","The list of available fields in the report builder. Drag from here into the Outline tab, Filter tab, or the preview."],
+    ["Data & Analytics","Details Only Export","A report export with no formatting, groupings, or subtotals — the one to use when the data is headed into a spreadsheet."],
+    ["Data & Analytics","Dashboard","A visual collection of components, each driven by a source report."],
+    ["Data & Analytics","Running User","The user whose access determines what data a dashboard displays. Everyone sees the dashboard through that user's eyes."],
+    ["Data & Analytics","Dynamic Dashboard","A dashboard whose running user is the logged-in user, so each viewer sees only their own data. Removes the need for duplicate dashboards per manager."],
+    ["Data & Analytics","Dashboard Widgets","Metric for a single key value, Table for columns of report data, and funnel, scatter, bar, line, and donut for graphical views."],
+    ["Data & Analytics","Dashboard Subscription","Schedules a dashboard to refresh and email itself, delivering the visuals rather than raw report data."],
+    ["Data & Analytics","Data Import Wizard","In-browser import for up to 50,000 records on common objects. Clean duplicates first, save as CSV, and map any columns whose names do not match."],
+    ["Data & Analytics","Data Loader","An installed client application for larger loads, up to 5 million records, including hard delete. Its command line is the option for automating exports and API integration."],
+    ["Data & Analytics","Data Export Service","Scheduled backup exports from Setup — weekly at most for Enterprise, Performance, and Unlimited; monthly for Professional and Developer. No daily option."],
+    ["Data & Analytics","SOQL","Salesforce's query language. In Dataloader.io, the WHERE clause is how you filter an export."],
+    ["Data & Analytics","Matching Rule","Defines what counts as a duplicate — exact or fuzzy matching on chosen fields."],
+    ["Data & Analytics","Duplicate Rule","Pairs with a matching rule and decides what happens on create and edit: allow with an alert, or block."],
+    ["Data & Analytics","Mass Transfer / Mass Delete","Setup tools for reassigning ownership or removing records in bulk without a data tool."],
+
+    ["Sales & Marketing","Lead","An unqualified prospect. Converting a lead creates an Account, a Contact, and optionally an Opportunity."],
+    ["Sales & Marketing","Lead Process","The subset of Lead Status values available to a given lead record type."],
+    ["Sales & Marketing","Sales Process","The subset of Opportunity Stage values tied to a record type. Build the process first, then the record type, then assign to profiles."],
+    ["Sales & Marketing","Campaign","A container for a marketing effort that tracks targeted leads and contacts, their responses, and the pipeline and closed business that resulted."],
+    ["Sales & Marketing","Campaign Member","A lead or contact linked to a campaign, carrying a member status that can be customized per campaign."],
+    ["Sales & Marketing","Primary Campaign Source","The one campaign credited with an opportunity's value in campaign statistics, even when several campaigns influenced the deal."],
+    ["Sales & Marketing","Campaign Influence","Associates multiple campaigns with an opportunity for attribution, with one designated as primary."],
+    ["Sales & Marketing","Marketing User","The feature license required to create and manage campaigns. A checkbox on the user record, not a permission set."],
+    ["Sales & Marketing","Opportunity Splits","Divides an opportunity's revenue across sales team members by percentage. Requires team selling to be enabled first."],
+    ["Sales & Marketing","Opportunity Team","The group of users working an opportunity together, each with a role."],
+    ["Sales & Marketing","Price Book","The list of products and their prices available to an opportunity."],
+    ["Sales & Marketing","Einstein Opportunity Scoring","Scores each opportunity and explains itself with Top Positives and Top Negatives — the factors that moved the score."],
+    ["Sales & Marketing","Forecasting","Projects future revenue by rolling up opportunities across the forecast hierarchy."],
+    ["Sales & Marketing","Territory Management","Assigns accounts and opportunities to territories, giving an alternative access model alongside the role hierarchy."],
+    ["Sales & Marketing","Sales Engagement","The tooling for high-volume selling, including Cadences — structured, repeatable follow-up sequences for reps."],
+    ["Sales & Marketing","Activity Timeline","The chronological view of tasks, events, calls, and emails on a record. Part of what Salesforce pitches as rep productivity."],
+    ["Sales & Marketing","Account Team","A group of users with defined roles and access on an account. The related list must be added to the layout separately from enabling the feature."],
+
+    ["Service & Support","Case","The record representing a customer issue, from any channel."],
+    ["Service & Support","Queue","A holding area that owns records until a user takes them. Common target for case and lead assignment rules."],
+    ["Service & Support","Email-to-Case","Turns email sent to a support address into cases. On-Demand Email-to-Case needs no software behind the firewall."],
+    ["Service & Support","Web-to-Case","Generates cases from a form on your website."],
+    ["Service & Support","Case Hierarchy","Related cases linked through the Parent Case field on the child."],
+    ["Service & Support","Case Merge","Combines duplicate cases into one. It removes cases rather than relating them."],
+    ["Service & Support","Case Contact Roles","Records which contacts are involved in a case and in what capacity — technical contact, decision maker, and so on."],
+    ["Service & Support","Case Team","The internal users working a case together. Not the same as contact roles, which are external people."],
+    ["Service & Support","Omni-Channel","Routes work to agents based on availability, capacity, and skills. Agents need the Omni-Channel utility in the utility bar to set status and accept work."],
+    ["Service & Support","Entitlements","Defines what support a customer is owed — the SLA layer of Service Cloud."],
+    ["Service & Support","Milestones","Time-based steps inside an entitlement process, such as first response within two hours, measured against business hours."],
+    ["Service & Support","Salesforce Knowledge","The article repository agents search and attach to cases. Also the trusted data that grounds AI service answers."],
+    ["Service & Support","Knowledge Component","A case sidebar that suggests articles from the case subject and description, and attaches or emails them in one click."],
+    ["Service & Support","Service Console","A tab-focused app where records open as primary tabs and related records as subtabs, so agents can multitask without losing their place."],
+    ["Service & Support","Split View","Keeps a list view pinned to the left of the console while working records on the right."],
+    ["Service & Support","Service Assistant","An Agentforce feature that builds a step-by-step service plan for a specific case and walks the agent through it."],
+
+    ["Productivity","Chatter","The collaboration feed. Feed Tracking must be enabled on an object before Chatter is available for it — Group, Site, and User are the exceptions."],
+    ["Productivity","Feed Tracking","The per-object setting that turns on the Chatter feed and decides which field changes post to it."],
+    ["Productivity","Unlisted Group","A Chatter group hidden from search, list views, and non-members. Off by default; enable it in Chatter Settings first."],
+    ["Productivity","Macro","A saved set of console actions. Three types: Regular (undoable), Irreversible (sends or commits something), and Bulk (runs across multiple records)."],
+    ["Productivity","Activity Management","Tasks and events — the to-dos and calendar entries attached to records."],
+    ["Productivity","AppExchange","Salesforce's marketplace. Five solution types: Apps, Bolt Solutions, Flow Solutions, Lightning Data, and Components."],
+    ["Productivity","Bolt Solution","A prebuilt, industry-specific template on AppExchange."],
+    ["Productivity","Managed Package","A packaged solution whose components do not count against the org's app, tab, and object limits, and which the publisher can upgrade."],
+    ["Productivity","Unmanaged Package","A one-time drop of components you then own and can edit. These do count against org limits."],
+    ["Productivity","Installed Packages","The Setup page listing what is installed in the current org."],
+    ["Productivity","My Installs & Subscriptions","The AppExchange page covering every org connected to your Trailblazer account, with filtering and central uninstall."],
+    ["Productivity","Developer Edition Org","A free org for building and testing. Best practice is to test a package here or in a sandbox before touching production."],
+
+    ["Agentforce","Agentforce","Salesforce's AI agent platform. Agents act autonomously, grounded in the org's own data."],
+    ["Agentforce","Agentforce Builder","Where an agent is created and customized — topics, instructions, actions, and the data it can reach."],
+    ["Agentforce","Topic","A job an agent can handle. Its Classification Description tells the agent when to use it; its Scope defines what the agent may do inside it."],
+    ["Agentforce","Instructions","The natural language rules describing the agent's job. They double as its guardrails — where you block a subject or force a transfer."],
+    ["Agentforce","Guardrails","The boundaries an agent must stay inside, expressed through instructions and scope."],
+    ["Agentforce","Reasoning Engine","The Reason, Act, Observe loop: review the context, take an action, watch the outcome. It reclassifies and replans when a user changes the subject."],
+    ["Agentforce","Plan Tracer","Shows the work behind a single response — the user's prompt, the topic selected, and the step-by-step reasoning."],
+    ["Agentforce","Enriched Event Logs","Detailed session data for troubleshooting: the agent's reasoning, which topics and actions fired, and whether it stayed inside its guardrails."],
+    ["Agentforce","Agentforce Testing Center","Batch-tests agents before you trust them in production."],
+    ["Agentforce","Prompt Builder","Creates reusable prompt templates grounded in Salesforce data."],
+    ["Agentforce","Data Library","The content an agent draws on when answering, configured in Agentforce Builder."],
+    ["Agentforce","Language Settings","Where an agent's default language, additional languages, and conversational tone are set."],
+
+    ["Company Setup","Company Settings","The Setup area holding Company Information, Fiscal Year, Business Hours, Holidays, and Currency Management."],
+    ["Company Setup","Standard Fiscal Year","A twelve-month year following the Gregorian calendar. You set only the start month — a February-to-January year still qualifies."],
+    ["Company Setup","Custom Fiscal Year","Required only when periods do not follow the Gregorian calendar, such as 4-4-5 or thirteen-period years."],
+    ["Company Setup","Currency Management","Where multiple currencies and conversion rates are configured for the org."],
+    ["Company Setup","Salesforce Foundations","The entry-level bundle of core CRM capability, including the activity timeline and integrated email."]
+  ];
+
+  let mode = "misses", filter = "all", quizMode = false;
+  let done = {}, star = {}, notes = {}, bad = {};
+  const askBad = {};
+  const revealed = {}, flipped = {};
+  let revealAll = false, order = null, scrollTo_ = null, barsOpen = true;
+  const root = document.getElementById("root");
+
+  const KEY = "sfadmin-state-v1";
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw){
+      const st = JSON.parse(raw);
+      done = st.done || {}; star = st.star || {}; notes = st.notes || {};
+      bad = st.bad || {}; if(st.barsOpen === false) barsOpen = false;
+    }
+  }catch(e){}
+
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(
+      {done:done, star:star, notes:notes, bad:bad, barsOpen:barsOpen})); }catch(e){}
+  }
+
+  function addNote(k,text){
+    text = (text||"").trim();
+    if(!text) return;
+    (notes[k] = notes[k] || []).push({t:text});
+    save();
+  }
+  function deck(m){ return m==="cards2" ? F2 : F; }
+  function deckKey(m){ return m==="cards2" ? "g" : "f"; }
+  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+  function dname(id){const d=DOMAINS.find(x=>x[0]===id);return d?d[1]:id}
+  function refLabel(k){
+    const c = String(k).charAt(0);
+    if(c==="f") return "Card "+String(k).slice(1);
+    if(c==="g") return "FC2 "+String(k).slice(1);
+    if(c==="q") return "QPT1 Q"+String(k).slice(1);
+    return "SFBEN Q"+k;
+  }
+
+  /* ---------- header ---------- */
+  function header(){
+    let h = '<div class="head"><div class="headtop"><div class="attempts">'
+      + '<div class="att"><b>55%</b><span>Practice 1 &middot; SF Ben &middot; 33 of 60</span></div>'
+      + '<div class="att two"><b>75%</b><span>Practice 2 &middot; Bridge GPT &middot; 49 of 65 &middot; <em>passed</em></span></div>'
+      + '<div class="att two"><b>90%</b><span>Practice 3 &middot; Quizlet &middot; 18 of 20 &middot; <em>passed</em></span></div>'
+      + '<div class="att two"><b>77%</b><span>Practice 4 &middot; Bridge GPT &middot; 46 of 60 &middot; <em>passed</em></span></div>'
+      + '</div>'
+      + '<button class="collapse" id="toggleBars" aria-expanded="'+barsOpen+'">'
+      + '<span class="chev">&#9660;</span>'+(barsOpen?"Hide":"Section scores")+'</button>'
+      + '</div>';
+
+    if(!barsOpen){
+      const weak = DOMAINS.filter(d=>d[4]<80).sort((a,b)=>b[5]-a[5])
+        .map(d=>d[1].replace(" & Lightning App Builder","").replace(" Applications","").replace(" Management","")+' <b>'+d[4]+'%</b>');
+      return h + '<p class="minisum">Below 80% on the latest test, heaviest first: '+weak.join(' &middot; ')+'</p></div>';
+    }
+
+    h += '<div class="bars">';
+    DOMAINS.forEach(([id,name,t1,t2,t3,w])=>{
+      h += '<div class="bar"><div class="name">'+name+' <em>&middot; '+w+'% of the exam</em>'
+        + '<div class="track"><div class="fill" style="width:'+(t1||0)+'%"></div><div class="pass"></div></div>'
+        + '<div class="track"><div class="fill" style="width:'+t2+'%"></div><div class="pass"></div></div>'
+        + '<div class="track t2"><div class="fill'+(t3<65?' low':'')+'" style="width:'+t3+'%"></div><div class="pass"></div></div>'
+        + '</div><div class="pct">'+(t1===null?'&mdash;':t1)+' &middot; '+t2+' <b>&middot; '+t3+'%</b></div></div>';
+    });
+    h += '</div><p class="legend">Sections ordered by weight on the current Platform Administrator outline. '
+      + 'Bars run oldest to newest, vertical line is the 65% pass mark. '
+      + 'Weighted against these section weights, practice 4 comes out around 77%.</p></div>';
+    return h;
+  }
+
+  /* ---------- controls ---------- */
+  function controls(){
+    const dn = Object.keys(done).filter(k=>done[k]).length;
+    const sn = Object.keys(star).filter(k=>star[k]).length;
+    const nn = Object.keys(notes).filter(k=>(notes[k]||[]).length).length;
+    const total = mode==="misses" ? Q.filter(q=>!bad[q.n]).length
+                : mode==="qpt1" ? QP.filter(q=>!bad["q"+q.n]).length
+                : deck(mode).filter(f=>!bad[deckKey(mode)+f.i]).length;
+
+    let opts = '<optgroup label="Lists">'
+      + opt("all", (mode==="misses"?"All missed questions":mode==="qpt1"?"All 20 questions":"All flashcards")+" ("+total+")")
+      + opt("star","★ Quick study ("+sn+")")
+      + opt("notes","✎ My highlights ("+nn+")")
+      + '</optgroup><optgroup label="Exam section">';
+    DOMAINS.forEach(([id,name])=>{
+      const c = (mode==="misses" ? Q.filter(q=>q.d===id && !bad[q.n]).length
+                : mode==="qpt1" ? QP.filter(q=>q.d===id && !bad["q"+q.n]).length
+                : deck(mode).filter(f=>f.d===id && !bad[deckKey(mode)+f.i]).length);
+      if(c) opts += opt(id, name.replace(" & Lightning App Builder","")+" ("+c+")");
+    });
+    opts += '</optgroup>';
+    if(mode==="misses"){
+      opts += '<optgroup label="Why I missed it">';
+      Object.keys(TAGS).forEach(t=>{
+        opts += opt(t, TAGS[t]+" ("+Q.filter(q=>q.t.includes(t) && !bad[q.n]).length+")");
+      });
+      opts += '</optgroup>';
+    }
+
+    let h = '<div class="controls"><div class="crow">'
+      + '<div class="seg">'
+      + '<button data-mode="misses" aria-pressed="'+(mode==="misses")+'">SFBENPT</button>'
+      + '<button data-mode="qpt1" aria-pressed="'+(mode==="qpt1")+'">QPT1</button>'
+      + '<button data-mode="cards" aria-pressed="'+(mode==="cards")+'">Flashcards</button>'
+      + '<button data-mode="cards2" aria-pressed="'+(mode==="cards2")+'">Flashcards2</button>'
+      + '<button data-mode="gaps" aria-pressed="'+(mode==="gaps")+'">Not yet tested</button>'
+      + '<button data-mode="bad" aria-pressed="'+(mode==="bad")+'">Questionable ('+Object.keys(bad).length+')</button>'
+      + '<button data-mode="defs" aria-pressed="'+(mode==="defs")+'">Definitions</button>'
+      + '<button data-mode="exam" aria-pressed="'+(mode==="exam")+'">Exam day</button>'
+      + '</div>';
+    if(mode!=="gaps" && mode!=="bad" && mode!=="exam" && mode!=="defs") h += '<select class="filter" id="filterSel">'+opts+'</select>';
+    if(mode==="gaps" || mode==="bad" || mode==="exam" || mode==="defs"){
+      h += '';
+    }else if(mode==="misses" || mode==="qpt1"){
+      h += '<button class="tool" id="quiz" aria-pressed="'+quizMode+'">'+(quizMode?"Answers hidden":"Quiz me")+'</button>';
+    }else{
+      h += '<button class="tool" id="revealAll" aria-pressed="'+revealAll+'">'+(revealAll?"Hide answers":"Show all")+'</button>'
+        + '<button class="tool" id="shuffle">Shuffle</button>';
+    }
+    h += '</div><div class="count">'+dn+' of '+(Q.length+QP.length+F.length+F2.length)+' marked as learned &middot; '+sn+' in quick study</div></div>';
+    return h;
+  }
+  function opt(v,label){ return '<option value="'+v+'"'+(filter===v?" selected":"")+'>'+label+'</option>'; }
+
+  /* ---------- highlights list ---------- */
+  function notesView(){
+    const keys = Object.keys(notes).filter(k=>(notes[k]||[]).length);
+    if(!keys.length) return '<p class="empty">No highlights yet. Select any text on a card and save it here.</p>';
+    keys.sort((a,b)=>{
+      const fa=String(a).charAt(0)==="f", fb=String(b).charAt(0)==="f";
+      if(fa!==fb) return fa?1:-1;
+      return parseInt(String(a).replace("f",""),10) - parseInt(String(b).replace("f",""),10);
+    });
+    let h = '<div class="sheet"><h2>My highlights</h2>'
+      + '<p class="sub">Everything you highlighted, across both practice tests. Click a label to jump to that card.</p>'
+      + '<ul class="notelist">';
+    keys.forEach(k=>{
+      (notes[k]||[]).forEach((nt,i)=>{
+        h += '<li><button class="qref" data-goto="'+k+'">'+refLabel(k)+'</button>'
+          + '<span class="body">'+esc(nt.t)+'</span>'
+          + '<button class="del" data-delnote="'+k+'" data-i="'+i+'" title="Delete highlight">&times;</button></li>';
+      });
+    });
+    return h + '</ul></div>';
+  }
+
+  function noteBlock(k){
+    const my = notes[k] || [];
+    if(!my.length) return '';
+    let h = '<div class="notes"><ul class="notelist">';
+    my.forEach((nt,i)=>{
+      h += '<li><span class="body">'+esc(nt.t)+'</span>'
+        + '<button class="del" data-delnote="'+k+'" data-i="'+i+'" title="Delete highlight">&times;</button></li>';
+    });
+    return h + '</ul></div>';
+  }
+  function badges(k){
+    return (star[k]&&filter!=="star"?'<span class="tag starred">★ Quick study</span>':'')
+      + ((notes[k]||[]).length?'<span class="tag hasnote">✎ '+notes[k].length+'</span>':'');
+  }
+  const REASONS = ["Ambiguous wording","Answer looks wrong","Outdated","Duplicate","Too trivial","Not on the exam"];
+
+  function flagBtn(k){
+    return '<button class="flagbtn" data-askbad="'+k+'" title="Move to Questionable">&#9873; Poor question</button>';
+  }
+  function reasonBox(k){
+    if(!askBad[k]) return '';
+    let h = '<div class="reasonbox"><p>Why is this a poor question?</p><div class="reasons">';
+    REASONS.forEach(r=>{ h += '<button data-bad="'+k+'" data-reason="'+r+'">'+r+'</button>'; });
+    h += '</div><div class="reasonrow">'
+      + '<input type="text" data-reasoninput="'+k+'" placeholder="Or type your own reason">'
+      + '<button data-badcustom="'+k+'">Move</button>'
+      + '<button data-cancelbad="'+k+'">Cancel</button>'
+      + '</div></div>';
+    return h;
+  }
+  function lookup(k){
+    const ks = String(k);
+    if(ks.charAt(0)==="f" || ks.charAt(0)==="g"){
+      const src = ks.charAt(0)==="g" ? F2 : F;
+      const f = src.find(x=>ks.charAt(0)+x.i===ks);
+      return f ? {title:f.f, detail:f.b, dom:f.d} : null;
+    }
+    if(ks.charAt(0)==="q"){
+      const q = QP.find(x=>"q"+x.n===ks);
+      return q ? {title:q.q, detail:(q.o.find(o=>o[1]===2)||["",0])[0], dom:q.d} : null;
+    }
+    const q = Q.find(x=>String(x.n)===ks);
+    return q ? {title:q.q, detail:(q.o.filter(o=>o[1]===2).map(o=>o[0]).join(" / ")), dom:q.d} : null;
+  }
+  function questionableView(){
+    const keys = Object.keys(bad);
+    if(!keys.length) return '<p class="empty">Nothing archived yet. Use &#9873; Poor question on any card to move it here with a reason.</p>';
+    let h = '<div class="sheet"><h2>Questionable</h2>'
+      + '<p class="sub">Archived from the study sets. These stay out of your lists until you restore them.</p></div>';
+    keys.forEach(k=>{
+      const it = lookup(k);
+      h += '<div class="archived"><div class="meta"><span class="qn">'+refLabel(k)+'</span>'
+        + (it?'<span>'+dname(it.dom)+'</span>':'') + '</div>'
+        + '<p class="prompt">'+esc(it?it.title:"(missing)")+'</p>'
+        + (it && it.detail ? '<p class="detail">Answer: '+esc(it.detail)+'</p>' : '')
+        + '<div><span class="reasonwhy">'+esc(bad[k].r)+'</span></div>'
+        + '<div class="foot"><div class="footL"></div><div class="footR">'
+        + '<button class="star" data-restore="'+k+'">Restore to study set</button>'
+        + '</div></div></div>';
+    });
+    return h;
+  }
+
+  function starBtn(k){
+    return '<button class="star" data-star="'+k+'" aria-pressed="'+(!!star[k])+'">'
+      + (star[k] ? '★ In quick study' : '☆ Add to quick study') + '</button>';
+  }
+
+  /* ---------- render ---------- */
+  function render(){
+    let h = '<div class="wrap">' + header() + controls();
+
+    if(mode==="gaps"){
+      root.innerHTML = h + gapsView() + '</div>';
+      wire(); return;
+    }
+
+    if(mode==="bad"){
+      root.innerHTML = h + questionableView() + '</div>';
+      wire(); return;
+    }
+
+    if(mode==="exam"){
+      root.innerHTML = h + examView() + '</div>';
+      wire(); return;
+    }
+
+    if(mode==="defs"){
+      root.innerHTML = h + defsView() + '</div>';
+      wire(); return;
+    }
+
+    if(filter==="notes"){
+      root.innerHTML = h + notesView() + '</div>';
+      wire(); return;
+    }
+
+    if(mode==="misses" || mode==="qpt1"){
+      const isQP = mode==="qpt1";
+      const src = isQP ? QP : Q;
+      const kf = q => isQP ? "q"+q.n : q.n;
+      const list = src.filter(q => !bad[kf(q)]).filter(q => filter==="all" ? true : filter==="star" ? !!star[kf(q)]
+        : (DOMAINS.some(d=>d[0]===filter) ? q.d===filter : (q.t||[]).includes(filter)));
+      if(!list.length) h += emptyMsg();
+      list.forEach(q=>{
+        const k = kf(q), show = !quizMode || revealed[k];
+        h += '<div class="card'+(done[k]&&!star[k]?" done":"")+(star[k]?" starred":"")+'" data-qn="'+k+'">'
+          + '<div class="meta"><span class="qn">Q'+q.n+'</span><span>'+dname(q.d)+'</span>'
+          + (q.t ? q.t.map(t=>'<span class="tag">'+TAGS[t]+'</span>').join("") : "")
+          + (isQP && show ? '<span class="tag '+(q.got?"gotok":"gotmiss")+'">'+(q.got?"You got this right":"You missed this")+'</span>' : "")
+          + badges(k)
+          + '</div><p class="prompt">'+esc(q.q)+'</p><ul class="opts">';
+        q.o.forEach(([txt,st])=>{
+          const cls = show ? (st===1?"miss":st===2?"ok":"plain") : "plain";
+          const flag = show ? (st===1?"you":st===2?"✓":"") : "";
+          h += '<li class="'+cls+'"><span class="flag">'+flag+'</span><span>'+esc(txt)+'</span></li>';
+        });
+        h += '</ul>';
+        if(show) h += '<p class="why">'+esc(q.w)+'</p>' + noteBlock(k);
+        h += reasonBox(k);
+        h += '<div class="foot"><div class="footL">';
+        if(show) h += '<label class="mark"><input type="checkbox" data-done="'+k+'"'+(done[k]?" checked":"")+'> I know this one</label>';
+        h += '</div><div class="footR">' + flagBtn(k) + starBtn(k);
+        if(!show) h += '<button class="star" data-reveal="'+k+'">Show answer</button>';
+        h += '</div></div></div>';
+      });
+
+    }else{
+      const D = deck(mode), pre = deckKey(mode);
+      let list = D.filter(f => !bad[pre+f.i]).filter(f => filter==="all" ? true : filter==="star" ? !!star[pre+f.i] : f.d===filter);
+      if(order) list = list.slice().sort((a,b)=>order.indexOf(a.i)-order.indexOf(b.i));
+      if(!list.length) h += emptyMsg();
+      list.forEach(f=>{
+        const k = pre+f.i, show = revealAll || flipped[k];
+        h += '<div class="card'+(done[k]&&!star[k]?" done":"")+(star[k]?" starred":"")+'" data-qn="'+k+'">'
+          + '<div class="meta"><span class="qn">'+(mode==="cards2"?"FC2 ":"Card ")+f.i+'</span><span>'+dname(f.d)+'</span>'+badges(k)
+          + '</div><p class="prompt">'+esc(f.f)+'</p>';
+        if(show) h += '<p class="back">'+esc(f.b)+'</p>' + noteBlock(k);
+        h += reasonBox(k);
+        h += '<div class="foot"><div class="footL">';
+        if(show) h += '<label class="mark"><input type="checkbox" data-done="'+k+'"'+(done[k]?" checked":"")+'> I know this one</label>';
+        h += '</div><div class="footR">' + flagBtn(k) + starBtn(k)
+          + '<button class="star" data-flip="'+k+'">'+(show?"Hide answer":"Show answer")+'</button>'
+          + '</div></div></div>';
+      });
+    }
+    root.innerHTML = h + '</div>';
+    wire();
+  }
+
+  function gapsView(){
+    let h = '<div class="sheet"><h2>On the outline, not on either practice test</h2>'
+      + '<p class="sub">The practice tests sampled the same familiar ground. These are objectives from the current '
+      + 'Platform Administrator outline that none of the practice tests asked about — so a good score on them is untested, not proven. '
+      + 'Ordered by section weight.</p>';
+    GAPS.forEach(([id,items])=>{
+      const d = DOMAINS.find(x=>x[0]===id);
+      h += '<div class="gap"><h3>'+d[1]+' <em>'+d[5]+'%</em></h3><ul class="notelist">';
+      items.forEach(it=>{ h += '<li><span class="body">'+esc(it)+'</span></li>'; });
+      h += '</ul></div>';
+    });
+    return h + '</div>';
+  }
+
+  function defsView(){
+    const cats = [];
+    DEFS.forEach(([c])=>{ if(cats.indexOf(c)<0) cats.push(c); });
+    let h = '<div class="defsearch"><input type="text" id="defq" placeholder="Search '+DEFS.length+' terms and definitions">'
+      + '<span class="defcount" id="defcount"></span></div>';
+    cats.forEach(c=>{
+      h += '<div class="sheet defsec" data-cat="'+c+'"><h2>'+c+'</h2><dl class="deflist">';
+      DEFS.filter(d=>d[0]===c).forEach(d=>{
+        h += '<div class="defrow" data-term="'+esc(d[1]).toLowerCase()+' '+esc(d[2]).toLowerCase().replace(/"/g,"")+'">'
+          + '<dt>'+esc(d[1])+'</dt><dd>'+esc(d[2])+'</dd></div>';
+      });
+      h += '</dl></div>';
+    });
+    return h;
+  }
+
+  function examView(){
+    return '<div class="sheet"><h2>The numbers</h2>'
+      + '<p class="sub">Salesforce Certified Platform Administrator, as of the current exam guide.</p>'
+      + '<table><tbody>'
+      + row("Questions","60 scored, plus up to 5 unscored ones mixed in. You cannot tell which are which.")
+      + row("Time","105 minutes — about 1 minute 45 seconds per question.")
+      + row("To pass","65%, meaning 39 of the 60 scored questions. Your budget is 21 wrong.")
+      + row("Scoring","No partial credit on multi-selects. No penalty for guessing, so never leave one blank.")
+      + row("Cost","$200 first attempt, $100 per retake, 24-hour wait before you can sit it again.")
+      + row("First-attempt pass rate","Roughly 60%. Salesforce does not publish this — it is a community estimate, so treat it as a rough signal rather than a fact.")
+      + '</tbody></table></div>'
+
+      + '<div class="sheet"><h2>Your flagged-question tally</h2>'
+      + '<p class="sub">Flag as you go and keep a running count. Assumes you get about 88% of the questions you feel good about, and about 40% of the ones you guess after eliminating two options.</p>'
+      + '<table><thead><tr><th>Flagged</th><th>Where that puts you</th></tr></thead><tbody>'
+      + '<tr><td>Under 15</td><td>Comfortable. You would have to be unlucky to fail.</td></tr>'
+      + '<tr><td>16&ndash;20</td><td>Still favored, roughly 9 in 10. Spend every remaining minute here.</td></tr>'
+      + '<tr><td>21&ndash;25</td><td>Uncomfortable — about a 1 in 4 chance of missing.</td></tr>'
+      + '<tr><td>26 or more</td><td>More likely to fail than pass.</td></tr>'
+      + '</tbody></table>'
+      + '<div class="gap"><h3>Three adjustments</h3><ul class="notelist">'
+      + li("You will see up to 65 questions but only 60 count. If you tally everything on screen, add about two to each threshold.")
+      + li("A flagged multi-select counts double. No partial credit, and a blind guess on \'choose 2 of 5\' lands well below 40%.")
+      + li("The tally cannot see your real leak — the ones you feel fine about and still get wrong. On your practice tests that has been most of the damage.")
+      + '</ul></div></div>'
+
+      + '<div class="sheet"><h2>Tactics that show up in every pass write-up</h2>'
+      + '<ul class="notelist">'
+      + li("Flag and move. Do not burn four minutes on one question when the average is under two.")
+      + li("Absolute qualifiers — always, never, all, only — usually mark a wrong option. They narrow the field fast.")
+      + li("Find the constraint. Phrases like \'without writing code\' or \'with the least administrative effort\' are doing the real work in the question.")
+      + li("Eliminate two options first, then choose. On a four-option question that turns a guess into a coin flip.")
+      + li("The wording is deliberately indirect. Expect to read a question twice — that is the exam, not you.")
+      + li("Never leave anything blank. There is no penalty for a wrong answer.")
+      + '</ul></div>'
+
+      + '<div class="sheet"><h2>Where you actually stand</h2>'
+      + '<ul class="notelist">'
+      + li("Your last three attempts: 75%, 90%, 77%. The common benchmark is to be consistently above 75% on practice before booking, which you are — narrowly.")
+      + li("Weighted against the current section weights, your last test comes out around 77%. That is 7 points of margin over the line.")
+      + li("Automation has gone 70% to 60% to 56% across three attempts and is 15% of the exam. It is the one section trending the wrong way.")
+      + li("Configuration &amp; Setup sits at 67%, also 15%. Those two sections together are 30% of the exam and both are near the line.")
+      + '</ul>'
+      + '<p class="sub" style="margin:14px 0 0">Exam facts and tactics drawn from Clientell\'s 2026 admin certification guide '
+      + '(<a href="https://www.getclientell.com/salesforce-blogs/what-is-the-pass-percentage-for-salesforce-admin-certification" target="_blank" rel="noopener">getclientell.com</a>) '
+      + 'and the official Salesforce exam guide. Verify the passing score and format on Salesforce\'s own guide before you book — one reputable source lists 68% rather than 65%.</p>'
+      + '</div>' + pairsSheet();
+  }
+  function pairsSheet(){
+    let h = '<div class="sheet pairs"><h2>Names that beat you</h2>'
+      + '<p class="sub">Fourteen of your 27 misses on the first practice test came down to picking a plausible name over the real one. '
+      + 'Read this the morning of the exam.</p>'
+      + '<table><thead><tr><th>Sounds real, isn\'t</th><th>The actual feature</th><th>What it does</th></tr></thead><tbody>';
+    PAIRS.forEach(p=>{
+      h += '<tr><td><span class="pill bad">'+p[0]+'</span></td>'
+        + '<td><span class="pill good">'+p[1]+'</span></td>'
+        + '<td>'+p[2]+'</td></tr>';
+    });
+    return h + '</tbody></table></div>';
+  }
+  function row(a,b){ return '<tr><td style="color:var(--ink);font-weight:600">'+a+'</td><td colspan="2" style="color:var(--ink-soft)">'+b+'</td></tr>'; }
+  function li(t){ return '<li><span class="body">'+t+'</span></li>'; }
+
+  function emptyMsg(){
+    return '<p class="empty">'+(filter==="star"
+      ? 'Your quick study list is empty. Add anything with ☆ Add to quick study — it stays here even once you mark it as known.'
+      : 'Nothing in this filter.')+'</p>';
+  }
+
+
+
+  /* ---------- events ---------- */
+  function wire(){
+    const dq = root.querySelector("#defq");
+    if(dq){
+      dq.oninput=()=>{
+        const q = dq.value.trim().toLowerCase();
+        let shown = 0;
+        root.querySelectorAll(".defsec").forEach(sec=>{
+          let any = false;
+          sec.querySelectorAll(".defrow").forEach(r=>{
+            const hit = !q || r.dataset.term.indexOf(q) >= 0;
+            r.style.display = hit ? "" : "none";
+            if(hit){ any = true; shown++; }
+          });
+          sec.style.display = any ? "" : "none";
+        });
+        const c = root.querySelector("#defcount");
+        if(c) c.textContent = q ? shown + (shown===1?" match":" matches") : "";
+      };
+    }
+    const tb = root.querySelector("#toggleBars");
+    if(tb) tb.onclick=()=>{ barsOpen=!barsOpen; save(); render(); };
+    root.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{
+      if(mode===b.dataset.mode) return;
+      mode=b.dataset.mode;
+      if(mode!=="misses" && filter!=="all" && filter!=="star" && filter!=="notes"
+         && !DOMAINS.some(d=>d[0]===filter)) filter="all";
+      Object.keys(askBad).forEach(x=>delete askBad[x]);
+      render();
+    });
+    const sel = root.querySelector("#filterSel");
+    if(sel) sel.onchange=()=>{ filter=sel.value; render(); };
+    const qz = root.querySelector("#quiz");
+    if(qz) qz.onclick=()=>{ quizMode=!quizMode; Object.keys(revealed).forEach(k=>delete revealed[k]); render(); };
+    const ra = root.querySelector("#revealAll");
+    if(ra) ra.onclick=()=>{ revealAll=!revealAll; Object.keys(flipped).forEach(k=>delete flipped[k]); render(); };
+    const sh = root.querySelector("#shuffle");
+    if(sh) sh.onclick=()=>{
+      order = deck(mode).map(f=>f.i);
+      for(let i=order.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [order[i],order[j]]=[order[j],order[i]]; }
+      render();
+    };
+    root.querySelectorAll("[data-reveal]").forEach(b=>b.onclick=()=>{ revealed[b.dataset.reveal]=true; render(); });
+    root.querySelectorAll("[data-flip]").forEach(b=>b.onclick=()=>{
+      const k=b.dataset.flip; flipped[k]=!flipped[k]; render();
+    });
+    root.querySelectorAll("[data-done]").forEach(c=>c.onchange=()=>{ done[c.dataset.done]=c.checked; save(); render(); });
+    root.querySelectorAll("[data-star]").forEach(b=>b.onclick=()=>{
+      const k=b.dataset.star; star[k]=!star[k]; if(!star[k]) delete star[k]; save(); render();
+    });
+    root.querySelectorAll("[data-askbad]").forEach(b=>b.onclick=()=>{
+      askBad[b.dataset.askbad]=true; render();
+    });
+    root.querySelectorAll("[data-cancelbad]").forEach(b=>b.onclick=()=>{
+      delete askBad[b.dataset.cancelbad]; render();
+    });
+    root.querySelectorAll("[data-bad]").forEach(b=>b.onclick=()=>{
+      archive(b.dataset.bad, b.dataset.reason);
+    });
+    root.querySelectorAll("[data-badcustom]").forEach(b=>b.onclick=()=>{
+      const k=b.dataset.badcustom;
+      const inp=root.querySelector('[data-reasoninput="'+k+'"]');
+      archive(k, inp && inp.value.trim() ? inp.value.trim() : "No reason given");
+    });
+    root.querySelectorAll("[data-reasoninput]").forEach(t=>{
+      t.onkeydown=e=>{
+        if(e.key==="Enter"){ e.preventDefault(); archive(t.dataset.reasoninput, t.value.trim()||"No reason given"); }
+        if(e.key==="Escape"){ delete askBad[t.dataset.reasoninput]; render(); }
+      };
+    });
+    root.querySelectorAll("[data-restore]").forEach(b=>b.onclick=()=>{
+      delete bad[b.dataset.restore]; save(); render();
+    });
+    root.querySelectorAll("[data-delnote]").forEach(b=>b.onclick=()=>{
+      const k=b.dataset.delnote, i=+b.dataset.i;
+      (notes[k]||[]).splice(i,1);
+      if(!(notes[k]||[]).length) delete notes[k];
+      save(); render();
+    });
+    root.querySelectorAll("[data-goto]").forEach(b=>b.onclick=()=>{
+      const k=b.dataset.goto;
+      const c0 = String(k).charAt(0);
+      mode = c0==="f" ? "cards" : c0==="g" ? "cards2" : c0==="q" ? "qpt1" : "misses";
+      filter="all"; quizMode=false; if(mode==="cards") flipped[k]=true;
+      scrollTo_=k; render();
+    });
+    if(scrollTo_){
+      const card = root.querySelector('[data-qn="'+scrollTo_+'"]');
+      if(card) card.scrollIntoView({behavior:"smooth", block:"center"});
+      scrollTo_=null;
+    }
+  }
+
+  function archive(k, reason){
+    bad[k] = {r: reason, t: Date.now()};
+    delete askBad[k];
+    save(); render();
+  }
+
+  /* ---------- highlight a passage, save the highlight ---------- */
+  const pop = document.createElement("div");
+  pop.id = "selpop";
+  pop.innerHTML = '<span>Save this highlight?</span>'
+    + '<button class="primary" id="pop-save">Save highlight</button>'
+    + '<button id="pop-cancel">No thanks</button>';
+  document.body.appendChild(pop);
+  let pending = null;
+  function hidePop(){ pop.classList.remove("on"); pending = null; }
+  function checkSelection(){
+    const sel = window.getSelection();
+    if(!sel || sel.isCollapsed){ hidePop(); return; }
+    const text = sel.toString().trim();
+    if(text.length < 3){ hidePop(); return; }
+    let node = sel.anchorNode;
+    if(node && node.nodeType === 3) node = node.parentElement;
+    const card = node && node.closest ? node.closest(".card") : null;
+    if(!card){ hidePop(); return; }
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    if(!rect.width && !rect.height){ hidePop(); return; }
+    pending = { k: card.dataset.qn, text: text.replace(/\s+/g," ") };
+    pop.style.left = Math.min(Math.max(rect.left + rect.width/2, 120), window.innerWidth - 120) + "px";
+    pop.style.top = Math.max(rect.top - 10, 46) + "px";
+    pop.classList.add("on");
+  }
+  document.addEventListener("mouseup", ()=>setTimeout(checkSelection, 10));
+  document.addEventListener("touchend", ()=>setTimeout(checkSelection, 10));
+  document.addEventListener("scroll", hidePop, true);
+  pop.addEventListener("mousedown", e=>e.preventDefault());
+  pop.querySelector("#pop-cancel").onclick = hidePop;
+  pop.querySelector("#pop-save").onclick = ()=>{
+    if(!pending) return;
+    const k = pending.k, t = pending.text;
+    hidePop();
+    const s = window.getSelection(); if(s) s.removeAllRanges();
+    addNote(k, t);
+    render();
+  };
+
+  render();
+})();
+</script>
+</body>
+</html>
